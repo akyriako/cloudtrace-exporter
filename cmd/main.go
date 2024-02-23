@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/akyriako/cloudtrace-exporter/pkg/adapter"
-	"github.com/akyriako/cloudtrace-exporter/pkg/provider"
+	otccommon "github.com/akyriako/opentelekomcloud/common"
 	"github.com/caarlos0/env/v10"
 	"log/slog"
 	"os"
@@ -11,10 +11,9 @@ import (
 )
 
 type environment struct {
-	CloudsConfig string `env:"OS_CLOUD" envDefault:"./clouds.yaml"`
-	Debug        bool   `env:"OS_DEBUG" envDefault:"true"`
-	Tracker      string `env:"CTS_TRACKER"`
-	From         uint   `env:"CTS_FROM" envDefault:"5"`
+	Debug   bool   `env:"OS_DEBUG" envDefault:"true"`
+	Tracker string `env:"CTS_TRACKER"`
+	From    uint   `env:"CTS_FROM" envDefault:"5"`
 }
 
 var (
@@ -48,25 +47,13 @@ func init() {
 }
 
 func main() {
-	pConfig, err := provider.GetConfigFromFile(config.CloudsConfig)
+	client, err := otccommon.NewOpenTelekomCloudClient("eu-de")
 	if err != nil {
-		wd, wderr := os.Getwd()
-		if wderr != nil {
-			slog.Error(fmt.Sprintf("parsing cloud config failed: %s", wderr.Error()))
-			os.Exit(exitCodeConfigurationError)
-		}
-
-		slog.Error(fmt.Sprintf("parsing cloud config at %s%s failed: %s", wd, strings.Trim(config.CloudsConfig, "."), err.Error()))
+		slog.Error(fmt.Sprintf("acquiring an opentelekomcloud client failed: %s", strings.ToLower(err.Error())))
 		os.Exit(exitCodeConfigurationError)
 	}
 
-	pClient, err := provider.NewOpenTelekomCloudClient(pConfig)
-	if err != nil {
-		slog.Error(fmt.Sprintf("acquiring an opentelekomcloud client failed: %s", err))
-		os.Exit(exitCodeOpenTelekomCloudClientError)
-	}
-
-	ctsAdapter, err := adapter.NewAdapter(pClient, config.Tracker)
+	ctsAdapter, err := adapter.NewAdapter(client, config.Tracker)
 	if err != nil {
 		slog.Error(fmt.Sprintf("creating an cloud trace adapter failed: %s", err))
 		os.Exit(exitCodeOpenTelekomCloudClientError)
@@ -78,5 +65,5 @@ func main() {
 		os.Exit(exitCodeOpenTelekomCloudClientError)
 	}
 
-	fmt.Println(len(events))
+	fmt.Println(events)
 }

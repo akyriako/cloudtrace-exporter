@@ -2,7 +2,7 @@ package adapter
 
 import (
 	"fmt"
-	"github.com/akyriako/cloudtrace-exporter/pkg/provider"
+	otccommon "github.com/akyriako/opentelekomcloud/common"
 	cloudevents "github.com/cloudevents/sdk-go"
 	"strings"
 	"time"
@@ -12,9 +12,9 @@ type Adapter struct {
 	ctsQuerier
 }
 
-func NewAdapter(c *provider.OpenTelekomCloudClient, tracker string) (*Adapter, error) {
+func NewAdapter(c *otccommon.OpenTelekomCloudClient, tracker string) (*Adapter, error) {
 	ctsQuerierConfig := ctsQuerierConfig{
-		ProjectId:   c.ProjectID,
+		ProjectId:   c.ProjectClient.ProjectID,
 		TrackerName: tracker,
 	}
 

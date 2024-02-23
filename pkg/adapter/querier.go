@@ -2,11 +2,10 @@ package adapter
 
 import (
 	"fmt"
-	"github.com/akyriako/cloudtrace-exporter/pkg/provider"
+	otccommon "github.com/akyriako/opentelekomcloud/common"
 	golangsdk "github.com/opentelekomcloud/gophertelekomcloud"
 	"github.com/opentelekomcloud/gophertelekomcloud/openstack"
 	"github.com/opentelekomcloud/gophertelekomcloud/openstack/cts/v2/traces"
-	"log/slog"
 	"strconv"
 	"strings"
 	"time"
@@ -41,7 +40,7 @@ func (q *ctsQuerier) getTraces(from uint) (*traces.ListTracesResponse, error) {
 	return ltr, nil
 }
 
-func newCtsQuerier(config ctsQuerierConfig, client *provider.OpenTelekomCloudClient) (*ctsQuerier, error) {
+func newCtsQuerier(config ctsQuerierConfig, client *otccommon.OpenTelekomCloudClient) (*ctsQuerier, error) {
 	if strings.TrimSpace(config.TrackerName) == "" {
 		config.TrackerName = defaultTrackerName
 	}
@@ -59,12 +58,15 @@ func newCtsQuerier(config ctsQuerierConfig, client *provider.OpenTelekomCloudCli
 	return querier, nil
 }
 
-func getCtsClient(c *provider.OpenTelekomCloudClient) (*golangsdk.ServiceClient, error) {
-	client, err := openstack.NewCTSV2(c.ProviderClient, golangsdk.EndpointOpts{
-		Region: c.Config.Region,
+func getCtsClient(c *otccommon.OpenTelekomCloudClient) (*golangsdk.ServiceClient, error) {
+	client, err := openstack.NewCTSV2(c.ProjectClient, golangsdk.EndpointOpts{
+		Region: c.ProjectClient.RegionID,
 	})
 	if err != nil {
-		slog.Error(fmt.Sprintf("acquiring a CTSV2 client failed client: %s", err.Error()))
+		err = fmt.Errorf(fmt.Sprintf(
+			"acquiring a cloud trace service client failed, %s",
+			strings.ToLower(err.Error()),
+		))
 		return nil, err
 	}
 
