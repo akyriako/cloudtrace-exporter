@@ -11,10 +11,10 @@ import (
 )
 
 type environment struct {
-	CloudConfigFlag string `env:"CLOUDS_PATH" envDefault:"./clouds.yaml"`
-	Debug           bool   `env:"DEBUG" envDefault:"true"`
-	Tracker         string `env:"TRACKER"`
-	From            uint   `env:"FROM_IN_MINUTES" envDefault:"5"`
+	CloudsConfig string `env:"OS_CLOUD" envDefault:"./clouds.yaml"`
+	Debug        bool   `env:"OS_DEBUG" envDefault:"true"`
+	Tracker      string `env:"CTS_TRACKER"`
+	From         uint   `env:"CTS_FROM" envDefault:"5"`
 }
 
 var (
@@ -48,7 +48,7 @@ func init() {
 }
 
 func main() {
-	pConfig, err := provider.GetConfigFromFile(config.CloudConfigFlag)
+	pConfig, err := provider.GetConfigFromFile(config.CloudsConfig)
 	if err != nil {
 		wd, wderr := os.Getwd()
 		if wderr != nil {
@@ -56,7 +56,7 @@ func main() {
 			os.Exit(exitCodeConfigurationError)
 		}
 
-		slog.Error(fmt.Sprintf("parsing cloud config at %s%s failed: %s", wd, strings.Trim(config.CloudConfigFlag, "."), err.Error()))
+		slog.Error(fmt.Sprintf("parsing cloud config at %s%s failed: %s", wd, strings.Trim(config.CloudsConfig, "."), err.Error()))
 		os.Exit(exitCodeConfigurationError)
 	}
 
@@ -78,9 +78,5 @@ func main() {
 		os.Exit(exitCodeOpenTelekomCloudClientError)
 	}
 
-	//for _, evt := range events {
-	//	fmt.Println(evt.Type(), evt.Subject())
-	//}
-
-	fmt.Println(events)
+	fmt.Println(len(events))
 }
