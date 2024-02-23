@@ -82,5 +82,5 @@ func main() {
 	//	fmt.Println(evt.Type(), evt.Subject())
 	//}
 
-	fmt.Println(events[0])
+	fmt.Println(events)
 }

@@ -14,7 +14,7 @@ type Adapter struct {
 
 func NewAdapter(c *provider.OpenTelekomCloudClient, tracker string) (*Adapter, error) {
 	ctsQuerierConfig := ctsQuerierConfig{
-		ProjectId:   c.OtcClient.ProjectID,
+		ProjectId:   c.ProjectID,
 		TrackerName: tracker,
 	}
 
@@ -46,12 +46,11 @@ func (a *Adapter) GetEvents(from uint) ([]cloudevents.Event, error) {
 		event.SetSource(a.ctsServiceClient.Endpoint)
 
 		evtType := strings.ToLower(fmt.Sprintf(
-			"%s.%s.%s.%s.%s",
+			"%s.%s.%s.%s",
 			trace.ServiceType,
 			trace.TraceType,
 			trace.ResourceType,
 			trace.TraceName,
-			trace.Message,
 		))
 		evtType = strings.TrimRight(evtType, ".")
 		event.SetType(evtType)

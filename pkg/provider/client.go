@@ -9,7 +9,7 @@ import (
 	"net/http"
 )
 
-type ClientConfig struct {
+type AuthOptionsProviderConfig struct {
 	AccessKey        string
 	SecretKey        string
 	DomainID         string
@@ -27,13 +27,13 @@ type ClientConfig struct {
 }
 
 type OpenTelekomCloudClient struct {
-	OtcClient *golangsdk.ProviderClient
-	Config    ClientConfig
+	*golangsdk.ProviderClient
+	Config AuthOptionsProviderConfig
 }
 
 func NewOpenTelekomCloudClient(config *CloudConfig) (*OpenTelekomCloudClient, error) {
 	auth := config.Auth
-	clientConfig := ClientConfig{
+	authOptionsProviderConfig := AuthOptionsProviderConfig{
 		IdentityEndpoint: auth.AuthURL,
 		TenantName:       auth.ProjectName,
 		AccessKey:        auth.AccessKey,
@@ -45,88 +45,59 @@ func NewOpenTelekomCloudClient(config *CloudConfig) (*OpenTelekomCloudClient, er
 		Insecure:         true,
 	}
 
-	client, err := buildClient(&clientConfig)
+	client, err := buildOpenTelekomCloudClient(authOptionsProviderConfig)
 	if err != nil {
 		slog.Error(fmt.Sprintf("acquiring an openstack client failed: %s", err.Error()))
 		return nil, err
 	}
 
-	config.Auth.ProjectID = clientConfig.TenantID
 	return client, err
 }
 
-func buildClient(c *ClientConfig) (*OpenTelekomCloudClient, error) {
+func buildOpenTelekomCloudClient(c AuthOptionsProviderConfig) (*OpenTelekomCloudClient, error) {
+	var authOptionsProvider golangsdk.AuthOptionsProvider
+
 	if c.AccessKey != "" && c.SecretKey != "" {
-		return buildClientByAKSK(c)
+		authOptionsProvider = golangsdk.AKSKAuthOptions{
+			DomainID:         c.DomainID,
+			Domain:           c.DomainName,
+			ProjectId:        c.TenantID,
+			ProjectName:      c.TenantName,
+			IdentityEndpoint: c.IdentityEndpoint,
+			AccessKey:        c.AccessKey,
+			SecretKey:        c.SecretKey,
+			Region:           c.Region,
+		}
 	} else if c.Password != "" && (c.Username != "" || c.UserID != "") {
-		return buildClientByPassword(c)
+		authOptionsProvider = golangsdk.AuthOptions{
+			DomainID:         c.DomainID,
+			DomainName:       c.DomainName,
+			TenantID:         c.TenantID,
+			TenantName:       c.TenantName,
+			IdentityEndpoint: c.IdentityEndpoint,
+			Password:         c.Password,
+			Username:         c.Username,
+			UserID:           c.UserID,
+		}
+	} else {
+		return nil, errors.New("a config token or an ak/sk pair or credentials required")
 	}
 
-	return nil, errors.New("a config token or an ak/sk pair or username/password credentials required")
-}
-
-func buildClientByPassword(c *ClientConfig) (*OpenTelekomCloudClient, error) {
-	var pao, dao golangsdk.AuthOptions
-
-	pao = golangsdk.AuthOptions{
-		DomainID:   c.DomainID,
-		DomainName: c.DomainName,
-		TenantID:   c.TenantID,
-		TenantName: c.TenantName,
-	}
-
-	dao = golangsdk.AuthOptions{
-		DomainID:   c.DomainID,
-		DomainName: c.DomainName,
-	}
-
-	for _, ao := range []*golangsdk.AuthOptions{&pao, &dao} {
-		ao.IdentityEndpoint = c.IdentityEndpoint
-		ao.Password = c.Password
-		ao.Username = c.Username
-		ao.UserID = c.UserID
-	}
-
-	return newOpenTelekomCloudClient(c, pao, dao)
-}
-
-func buildClientByAKSK(c *ClientConfig) (*OpenTelekomCloudClient, error) {
-	var pao, dao golangsdk.AKSKAuthOptions
-
-	pao = golangsdk.AKSKAuthOptions{
-		ProjectName: c.TenantName,
-		ProjectId:   c.TenantID,
-	}
-
-	dao = golangsdk.AKSKAuthOptions{
-		DomainID: c.DomainID,
-		Domain:   c.DomainName,
-	}
-
-	for _, ao := range []*golangsdk.AKSKAuthOptions{&pao, &dao} {
-		ao.IdentityEndpoint = c.IdentityEndpoint
-		ao.AccessKey = c.AccessKey
-		ao.SecretKey = c.SecretKey
-	}
-	return newOpenTelekomCloudClient(c, pao, dao)
-}
-
-func newOpenTelekomCloudClient(c *ClientConfig, pao, dao golangsdk.AuthOptionsProvider) (*OpenTelekomCloudClient, error) {
-	openstackClient, err := newOpenStackClient(c, pao)
+	openstackClient, err := buildOpenStackClient(authOptionsProvider)
 	if err != nil {
 		return nil, err
 	}
 
 	client := &OpenTelekomCloudClient{
-		OtcClient: openstackClient,
-		Config:    *c,
+		ProviderClient: openstackClient,
+		Config:         c,
 	}
 
 	return client, err
 }
 
-func newOpenStackClient(c *ClientConfig, ao golangsdk.AuthOptionsProvider) (*golangsdk.ProviderClient, error) {
-	client, err := openstack.NewClient(ao.GetIdentityEndpoint())
+func buildOpenStackClient(aop golangsdk.AuthOptionsProvider) (*golangsdk.ProviderClient, error) {
+	client, err := openstack.NewClient(aop.GetIdentityEndpoint())
 	if err != nil {
 		return nil, err
 	}
@@ -143,11 +114,10 @@ func newOpenStackClient(c *ClientConfig, ao golangsdk.AuthOptionsProvider) (*gol
 		},
 	}
 
-	err = openstack.Authenticate(client, ao)
+	err = openstack.Authenticate(client, aop)
 	if err != nil {
 		return nil, err
 	}
 
-	//c.TenantID = client.ProjectID
 	return client, nil
 }

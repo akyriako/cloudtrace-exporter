@@ -60,7 +60,7 @@ func newCtsQuerier(config ctsQuerierConfig, client *provider.OpenTelekomCloudCli
 }
 
 func getCtsClient(c *provider.OpenTelekomCloudClient) (*golangsdk.ServiceClient, error) {
-	client, err := openstack.NewCTSV2(c.OtcClient, golangsdk.EndpointOpts{
+	client, err := openstack.NewCTSV2(c.ProviderClient, golangsdk.EndpointOpts{
 		Region: c.Config.Region,
 	})
 	if err != nil {

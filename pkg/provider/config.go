@@ -10,6 +10,7 @@ type CloudAuth struct {
 	ProjectName string `yaml:"project_name"`
 	ProjectID   string `yaml:"project_id"`
 	DomainName  string `yaml:"domain_name"`
+	DomainID    string `yaml:"domain_id"`
 	AccessKey   string `yaml:"access_key"`
 	Region      string `yaml:"region"`
 	SecretKey   string `yaml:"secret_key"`
@@ -18,17 +19,8 @@ type CloudAuth struct {
 	Password    string `yaml:"password"`
 }
 
-type Global struct {
-	Port            string `yaml:"port"`
-	Prefix          string `yaml:"prefix"`
-	MetricsPath     string `yaml:"metrics_path"`
-	MaxRoutines     int    `yaml:"max_routines"`
-	ScrapeBatchSize int    `yaml:"scrape_batch_size"`
-}
-
 type CloudConfig struct {
-	Auth   CloudAuth `yaml:"auth"`
-	Global Global    `yaml:"global"`
+	Auth CloudAuth `yaml:"auth"`
 }
 
 func GetConfigFromFile(configPath string) (*CloudConfig, error) {
