@@ -5,12 +5,14 @@ import (
 	"github.com/akyriako/cloudtrace-exporter/pkg/adapter"
 	otccommon "github.com/akyriako/opentelekomcloud/common"
 	"github.com/caarlos0/env/v10"
+	"github.com/davecgh/go-spew/spew"
 	"log/slog"
 	"os"
 	"strings"
 )
 
 type environment struct {
+	Cloud   string `env:"OS_CLOUD"`
 	Debug   bool   `env:"OS_DEBUG" envDefault:"true"`
 	Tracker string `env:"CTS_TRACKER"`
 	From    uint   `env:"CTS_FROM" envDefault:"5"`
@@ -47,7 +49,7 @@ func init() {
 }
 
 func main() {
-	client, err := otccommon.NewOpenTelekomCloudClient("eu-de")
+	client, err := otccommon.NewOpenTelekomCloudClient(config.Cloud)
 	if err != nil {
 		slog.Error(fmt.Sprintf("acquiring an opentelekomcloud client failed: %s", strings.ToLower(err.Error())))
 		os.Exit(exitCodeConfigurationError)
@@ -65,5 +67,5 @@ func main() {
 		os.Exit(exitCodeOpenTelekomCloudClientError)
 	}
 
-	fmt.Println(events)
+	spew.Dump(events)
 }

@@ -16,8 +16,10 @@ github.com/Azure/go-autorest/tracing v0.1.0/go.mod h1:ROEEAFwXycQw7Sn3DXNtEedEvd
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/Shopify/sarama v1.19.0/go.mod h1:FVkBWblsNy7DGZRfXLU0O9RCGt5g3g3yEuWXgklEdEo=
 github.com/Shopify/toxiproxy v2.1.4+incompatible/go.mod h1:OXgGpZ6Cli1/URJOF1DMxUHB2q5Ap20/P/eIdh4G0pI=
-github.com/akyriako/opentelekomcloud v0.0.0-20240223183900-f34e590a3a1a h1:sUWv2vh0xn15w9IkjFAhDZpqEfZANBWhGsuvtV4VWGc=
-github.com/akyriako/opentelekomcloud v0.0.0-20240223183900-f34e590a3a1a/go.mod h1:XMWG0VArxa1GtBe5FdCMT8xjfBuKVVWLUOcJXXR7lBg=
+github.com/akyriako/opentelekomcloud v0.0.0-20240223185917-49c414cf10e1 h1:sQ+KrBa/7x4WcK4rKz/LvzMjAbROmdru3xfIwYY/pUA=
+github.com/akyriako/opentelekomcloud v0.0.0-20240223185917-49c414cf10e1/go.mod h1:XMWG0VArxa1GtBe5FdCMT8xjfBuKVVWLUOcJXXR7lBg=
+github.com/akyriako/opentelekomcloud v0.0.0-20240224065717-964f66624f51 h1:jiEAF//0S6Ny/z4qCqJ7k+Vk5UaPT2FZz+xexGN45CM=
+github.com/akyriako/opentelekomcloud v0.0.0-20240224065717-964f66624f51/go.mod h1:XMWG0VArxa1GtBe5FdCMT8xjfBuKVVWLUOcJXXR7lBg=
 github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc/go.mod h1:LOuyumcjzFXgccqObfd/Ljyb9UuFJ6TxHnclSeseNhc=
 github.com/alecthomas/units v0.0.0-20151022065526-2efee857e7cf/go.mod h1:ybxpYRFXyAe+OPACYpWeL0wqObRcbAqCMya13uyzqw0=
 github.com/apache/thrift v0.12.0/go.mod h1:cp2SuWMxlEZw2r+iP2GNCdIi4C1qmUzdZFSVb+bacwQ=
