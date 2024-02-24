@@ -20,6 +20,8 @@ github.com/akyriako/opentelekomcloud v0.0.0-20240223185917-49c414cf10e1 h1:sQ+Kr
 github.com/akyriako/opentelekomcloud v0.0.0-20240223185917-49c414cf10e1/go.mod h1:XMWG0VArxa1GtBe5FdCMT8xjfBuKVVWLUOcJXXR7lBg=
 github.com/akyriako/opentelekomcloud v0.0.0-20240224065717-964f66624f51 h1:jiEAF//0S6Ny/z4qCqJ7k+Vk5UaPT2FZz+xexGN45CM=
 github.com/akyriako/opentelekomcloud v0.0.0-20240224065717-964f66624f51/go.mod h1:XMWG0VArxa1GtBe5FdCMT8xjfBuKVVWLUOcJXXR7lBg=
+github.com/akyriako/opentelekomcloud v0.0.0-20240224071902-8f2833728681 h1:vWE/RfZOj7xM1xzPQkqMmJEC3HwFwo2NlYdiiuJ5P0Q=
+github.com/akyriako/opentelekomcloud v0.0.0-20240224071902-8f2833728681/go.mod h1:XMWG0VArxa1GtBe5FdCMT8xjfBuKVVWLUOcJXXR7lBg=
 github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc/go.mod h1:LOuyumcjzFXgccqObfd/Ljyb9UuFJ6TxHnclSeseNhc=
 github.com/alecthomas/units v0.0.0-20151022065526-2efee857e7cf/go.mod h1:ybxpYRFXyAe+OPACYpWeL0wqObRcbAqCMya13uyzqw0=
 github.com/apache/thrift v0.12.0/go.mod h1:cp2SuWMxlEZw2r+iP2GNCdIi4C1qmUzdZFSVb+bacwQ=

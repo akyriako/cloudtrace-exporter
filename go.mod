@@ -3,7 +3,7 @@ module github.com/akyriako/cloudtrace-exporter
 go 1.21
 
 require (
-	github.com/akyriako/opentelekomcloud v0.0.0-20240224065717-964f66624f51
+	github.com/akyriako/opentelekomcloud v0.0.0-20240224071902-8f2833728681
 	github.com/caarlos0/env/v10 v10.0.0
 	github.com/cloudevents/sdk-go v1.2.0
 	github.com/davecgh/go-spew v1.1.1
