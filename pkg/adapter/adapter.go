@@ -8,27 +8,36 @@ import (
 	"time"
 )
 
-type Adapter struct {
-	ctsQuerier
+// SinkBindingConfig The SinkBinding object supports decoupling event production from delivery addressing.
+// You can use sink binding to direct a subject to a sink. A subject is a Kubernetes resource that embeds a PodSpec
+// template and produces events. A sink is an addressable Kubernetes object that can receive events.
+// The SinkBinding object injects environment variables into the PodTemplateSpec of the sink. Because of this, the
+// application code does not need to interact directly with the Kubernetes API to locate the event destination.
+type SinkBindingConfig struct {
+	// The URL of the resolved sink.
+	K_SINK string
+
+	// A JSON object that specifies overrides to the outbound event.
+	K_CE_OVERRIDES string
 }
 
-func NewAdapter(c *otccommon.OpenTelekomCloudClient, tracker string) (*Adapter, error) {
-	ctsQuerierConfig := ctsQuerierConfig{
-		ProjectId:   c.ProjectClient.ProjectID,
-		TrackerName: tracker,
-	}
+type Adapter struct {
+	ctsQuerier
+	SinkBinding SinkBindingConfig
+}
 
-	qry, err := newCtsQuerier(ctsQuerierConfig, c)
+func NewAdapter(c *otccommon.OpenTelekomCloudClient, cqc CtsQuerierConfig, sbc SinkBindingConfig) (*Adapter, error) {
+	qry, err := newCtsQuerier(cqc, c)
 	if err != nil {
 		return nil, err
 	}
 
-	adapter := Adapter{*qry}
+	adapter := Adapter{*qry, sbc}
 	return &adapter, nil
 }
 
-func (a *Adapter) GetEvents(from uint) ([]cloudevents.Event, error) {
-	ltr, err := a.getTraces(from)
+func (a *Adapter) GetEvents() ([]cloudevents.Event, error) {
+	ltr, err := a.getTraces()
 	if err != nil {
 		return nil, err
 	}
@@ -79,4 +88,9 @@ func (a *Adapter) GetEvents(from uint) ([]cloudevents.Event, error) {
 	}
 
 	return events, nil
+}
+
+func (a *Adapter) SendEvents(events []cloudevents.Event) error {
+
+	return nil
 }

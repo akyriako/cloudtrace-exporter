@@ -12,10 +12,13 @@ import (
 )
 
 type environment struct {
-	Cloud   string `env:"OS_CLOUD"`
-	Debug   bool   `env:"OS_DEBUG" envDefault:"true"`
-	Tracker string `env:"CTS_TRACKER"`
-	From    uint   `env:"CTS_FROM" envDefault:"5"`
+	Cloud          string `env:"OS_CLOUD"`
+	Debug          bool   `env:"OS_DEBUG" envDefault:"true"`
+	Tracker        string `env:"CTS_TRACKER" envDefault:"system"`
+	From           uint   `env:"CTS_FROM" envDefault:"5"`
+	PullAndPush    bool   `env:"CTS_X_PNP" envDefault:"false"`
+	K_SINK         string `env:"K_SINK"`
+	K_CE_OVERRIDES string `env:"K_CE_OVERRIDES"`
 }
 
 var (
@@ -26,6 +29,7 @@ var (
 const (
 	exitCodeConfigurationError          int = 1
 	exitCodeOpenTelekomCloudClientError int = 2
+	exitCodeDeliveringCloudEventsError  int = 3
 )
 
 func init() {
@@ -55,17 +59,36 @@ func main() {
 		os.Exit(exitCodeConfigurationError)
 	}
 
-	ctsAdapter, err := adapter.NewAdapter(client, config.Tracker)
+	cqc := adapter.CtsQuerierConfig{
+		ProjectId:   client.ProjectClient.ProjectID,
+		TrackerName: config.Tracker,
+		From:        config.From,
+	}
+
+	sbc := adapter.SinkBindingConfig{
+		K_SINK:         config.K_SINK,
+		K_CE_OVERRIDES: config.K_CE_OVERRIDES,
+	}
+
+	ctsAdapter, err := adapter.NewAdapter(client, cqc, sbc)
 	if err != nil {
 		slog.Error(fmt.Sprintf("creating an cloud trace adapter failed: %s", err))
 		os.Exit(exitCodeOpenTelekomCloudClientError)
 	}
 
-	events, err := ctsAdapter.GetEvents(config.From)
+	events, err := ctsAdapter.GetEvents()
 	if err != nil {
 		slog.Error(fmt.Sprintf("querying cloud trace service failed: %s", err))
 		os.Exit(exitCodeOpenTelekomCloudClientError)
 	}
 
-	spew.Dump(events)
+	if config.PullAndPush {
+		err := ctsAdapter.SendEvents(events)
+		if err != nil {
+			slog.Error(fmt.Sprintf("delivering cloud events failed: %s", err))
+			os.Exit(exitCodeDeliveringCloudEventsError)
+		}
+	} else {
+		spew.Dump(events)
+	}
 }

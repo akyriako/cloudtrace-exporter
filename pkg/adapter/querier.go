@@ -15,18 +15,19 @@ const (
 	defaultTrackerName string = "system"
 )
 
-type ctsQuerierConfig struct {
+type CtsQuerierConfig struct {
 	ProjectId   string
 	TrackerName string
+	From        uint
 }
 
 type ctsQuerier struct {
-	config           ctsQuerierConfig
+	config           CtsQuerierConfig
 	ctsServiceClient *golangsdk.ServiceClient
 }
 
-func (q *ctsQuerier) getTraces(from uint) (*traces.ListTracesResponse, error) {
-	fromInMilliSeconds := time.Now().Add(time.Duration(-from)*time.Minute).UTC().UnixNano() / 1e6
+func (q *ctsQuerier) getTraces() (*traces.ListTracesResponse, error) {
+	fromInMilliSeconds := time.Now().Add(time.Duration(-q.config.From)*time.Minute).UTC().UnixNano() / 1e6
 	toInMilliSeconds := time.Now().UTC().UnixNano() / 1e6
 
 	ltr, err := traces.List(q.ctsServiceClient, q.config.TrackerName, traces.ListTracesOpts{
@@ -40,7 +41,7 @@ func (q *ctsQuerier) getTraces(from uint) (*traces.ListTracesResponse, error) {
 	return ltr, nil
 }
 
-func newCtsQuerier(config ctsQuerierConfig, client *otccommon.OpenTelekomCloudClient) (*ctsQuerier, error) {
+func newCtsQuerier(config CtsQuerierConfig, client *otccommon.OpenTelekomCloudClient) (*ctsQuerier, error) {
 	if strings.TrimSpace(config.TrackerName) == "" {
 		config.TrackerName = defaultTrackerName
 	}
