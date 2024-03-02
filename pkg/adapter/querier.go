@@ -13,6 +13,7 @@ import (
 
 const (
 	defaultTrackerName string = "system"
+	defaultFromPeriod  uint   = 5
 )
 
 type CtsQuerierConfig struct {

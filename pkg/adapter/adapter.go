@@ -14,11 +14,11 @@ import (
 // The SinkBinding object injects environment variables into the PodTemplateSpec of the sink. Because of this, the
 // application code does not need to interact directly with the Kubernetes API to locate the event destination.
 type SinkBindingConfig struct {
-	// The URL of the resolved sink.
-	K_SINK string
+	// The URL of the resolved sink (K_SINK)
+	SinkUrl string
 
-	// A JSON object that specifies overrides to the outbound event.
-	K_CE_OVERRIDES string
+	// A JSON object that specifies overrides to the outbound event (K_CE_OVERRIDES)
+	CeOverrides string
 }
 
 type Adapter struct {

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"github.com/akyriako/cloudtrace-exporter/pkg/adapter"
 	"github.com/akyriako/opentelekomcloud/auth"
@@ -12,24 +13,27 @@ import (
 )
 
 type environment struct {
-	Cloud          string `env:"OS_CLOUD"`
-	Debug          bool   `env:"OS_DEBUG" envDefault:"true"`
-	Tracker        string `env:"CTS_TRACKER" envDefault:"system"`
-	From           uint   `env:"CTS_FROM" envDefault:"5"`
-	PullAndPush    bool   `env:"CTS_X_PNP" envDefault:"false"`
-	K_SINK         string `env:"K_SINK"`
-	K_CE_OVERRIDES string `env:"K_CE_OVERRIDES"`
+	Cloud       string `env:"OS_CLOUD"`
+	Debug       bool   `env:"OS_DEBUG" envDefault:"false"`
+	Tracker     string `env:"CTS_TRACKER" envDefault:"system"`
+	From        uint   `env:"CTS_FROM" envDefault:"5"`
+	PullAndPush bool   `env:"CTS_X_PNP" envDefault:"false"`
+	SinkUrl     string `env:"K_SINK"`
+	CeOverrides string `env:"K_CE_OVERRIDES"`
 }
 
 var (
 	config environment
 	logger *slog.Logger
+	from   uint
 )
 
 const (
-	exitCodeConfigurationError          int = 1
-	exitCodeOpenTelekomCloudClientError int = 2
-	exitCodeDeliveringCloudEventsError  int = 3
+	exitCodeConfigurationError          int  = 1
+	exitCodeOpenTelekomCloudClientError int  = 2
+	exitCodeDeliveringCloudEventsError  int  = 3
+	minFrom                             uint = 1
+	maxFrom                             uint = 10800
 )
 
 func init() {
@@ -38,6 +42,8 @@ func init() {
 		slog.Error(fmt.Sprintf("parsing env variables failed: %s", err.Error()))
 		os.Exit(exitCodeConfigurationError)
 	}
+
+	flag.UintVar(&from, "from", 0, "the number of minutes between queries")
 
 	levelInfo := slog.LevelInfo
 	if config.Debug {
@@ -49,14 +55,33 @@ func init() {
 	}))
 
 	slog.SetDefault(logger)
+}
 
+func fromInRange(from uint) error {
+	if from < minFrom || from > maxFrom {
+		return fmt.Errorf("envvar 'from' out of range: %d and %d", minFrom, maxFrom)
+	}
+
+	return nil
 }
 
 func main() {
+	flag.Parse()
+
 	client, err := auth.NewOpenTelekomCloudClient(config.Cloud)
 	if err != nil {
 		slog.Error(fmt.Sprintf("acquiring an opentelekomcloud client failed: %s", strings.ToLower(err.Error())))
 		os.Exit(exitCodeConfigurationError)
+	}
+
+	if from != 0 {
+		err = fromInRange(from)
+		if err != nil {
+			slog.Error(err.Error())
+			os.Exit(exitCodeConfigurationError)
+		}
+
+		config.From = from
 	}
 
 	cqc := adapter.CtsQuerierConfig{
@@ -66,8 +91,8 @@ func main() {
 	}
 
 	sbc := adapter.SinkBindingConfig{
-		K_SINK:         config.K_SINK,
-		K_CE_OVERRIDES: config.K_CE_OVERRIDES,
+		SinkUrl:     config.SinkUrl,
+		CeOverrides: config.CeOverrides,
 	}
 
 	ctsAdapter, err := adapter.NewAdapter(client, cqc, sbc)
