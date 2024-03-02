@@ -1,0 +1,17 @@
+apiVersion: sources.knative.dev/v1
+kind: SinkBinding
+metadata:
+  name: cloudtrace-exporter-sinkbinding
+  namespace: default
+spec:
+  subject:
+    apiVersion: batch/v1
+    kind: CronJob
+    selector:
+      matchLabels:
+        app: cloudtrace-exporter-cron
+  sink:
+    ref:
+      apiVersion: serving.knative.dev/v1
+      kind: Service
+      name: http://event-display.default.svc.cluster.local
