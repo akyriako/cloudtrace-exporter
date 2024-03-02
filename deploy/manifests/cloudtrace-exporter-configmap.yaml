@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cloudtrace-exporter-config
+  namespace: default
+data:
+  OS_CLOUD: "otc"
+  OS_DEBUG: "true"
+  CTS_X_PNP: "false"
+  CTS_FROM: "1"
+  K_SINK: "http://event-display.default.svc.cluster.local"
+
+  
