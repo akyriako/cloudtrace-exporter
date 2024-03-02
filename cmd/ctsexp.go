@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/akyriako/cloudtrace-exporter/pkg/adapter"
-	otccommon "github.com/akyriako/opentelekomcloud/common"
+	"github.com/akyriako/opentelekomcloud/auth"
 	"github.com/caarlos0/env/v10"
 	"github.com/davecgh/go-spew/spew"
 	"log/slog"
@@ -53,7 +53,7 @@ func init() {
 }
 
 func main() {
-	client, err := otccommon.NewOpenTelekomCloudClient(config.Cloud)
+	client, err := auth.NewOpenTelekomCloudClient(config.Cloud)
 	if err != nil {
 		slog.Error(fmt.Sprintf("acquiring an opentelekomcloud client failed: %s", strings.ToLower(err.Error())))
 		os.Exit(exitCodeConfigurationError)

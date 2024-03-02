@@ -2,7 +2,7 @@ package adapter
 
 import (
 	"fmt"
-	otccommon "github.com/akyriako/opentelekomcloud/common"
+	"github.com/akyriako/opentelekomcloud/auth"
 	cloudevents "github.com/cloudevents/sdk-go"
 	"strings"
 	"time"
@@ -26,7 +26,7 @@ type Adapter struct {
 	SinkBinding SinkBindingConfig
 }
 
-func NewAdapter(c *otccommon.OpenTelekomCloudClient, cqc CtsQuerierConfig, sbc SinkBindingConfig) (*Adapter, error) {
+func NewAdapter(c *auth.OpenTelekomCloudClient, cqc CtsQuerierConfig, sbc SinkBindingConfig) (*Adapter, error) {
 	qry, err := newCtsQuerier(cqc, c)
 	if err != nil {
 		return nil, err

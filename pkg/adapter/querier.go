@@ -2,7 +2,7 @@ package adapter
 
 import (
 	"fmt"
-	otccommon "github.com/akyriako/opentelekomcloud/common"
+	"github.com/akyriako/opentelekomcloud/auth"
 	golangsdk "github.com/opentelekomcloud/gophertelekomcloud"
 	"github.com/opentelekomcloud/gophertelekomcloud/openstack"
 	"github.com/opentelekomcloud/gophertelekomcloud/openstack/cts/v2/traces"
@@ -41,7 +41,7 @@ func (q *ctsQuerier) getTraces() (*traces.ListTracesResponse, error) {
 	return ltr, nil
 }
 
-func newCtsQuerier(config CtsQuerierConfig, client *otccommon.OpenTelekomCloudClient) (*ctsQuerier, error) {
+func newCtsQuerier(config CtsQuerierConfig, client *auth.OpenTelekomCloudClient) (*ctsQuerier, error) {
 	if strings.TrimSpace(config.TrackerName) == "" {
 		config.TrackerName = defaultTrackerName
 	}
@@ -59,7 +59,7 @@ func newCtsQuerier(config CtsQuerierConfig, client *otccommon.OpenTelekomCloudCl
 	return querier, nil
 }
 
-func getCtsClient(c *otccommon.OpenTelekomCloudClient) (*golangsdk.ServiceClient, error) {
+func getCtsClient(c *auth.OpenTelekomCloudClient) (*golangsdk.ServiceClient, error) {
 	client, err := openstack.NewCTSV2(c.ProjectClient, golangsdk.EndpointOpts{
 		Region: c.ProjectClient.RegionID,
 	})
