@@ -1,9 +1,12 @@
 package adapter
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/akyriako/opentelekomcloud/auth"
 	cloudevents "github.com/cloudevents/sdk-go"
+	duckv1 "knative.dev/pkg/apis/duck/v1"
+	"net/url"
 	"strings"
 	"time"
 )
@@ -23,7 +26,8 @@ type SinkBindingConfig struct {
 
 type Adapter struct {
 	ctsQuerier
-	SinkBinding SinkBindingConfig
+	sinkUrl     *url.URL
+	ceOverrides *duckv1.CloudEventOverrides
 }
 
 func NewAdapter(c *auth.OpenTelekomCloudClient, cqc CtsQuerierConfig, sbc SinkBindingConfig) (*Adapter, error) {
@@ -32,7 +36,22 @@ func NewAdapter(c *auth.OpenTelekomCloudClient, cqc CtsQuerierConfig, sbc SinkBi
 		return nil, err
 	}
 
-	adapter := Adapter{*qry, sbc}
+	sinkUrl, err := url.Parse(sbc.SinkUrl)
+	if err != nil {
+		return nil, err
+	}
+
+	var ceOverrides *duckv1.CloudEventOverrides
+	if len(sbc.CeOverrides) > 0 {
+		overrides := duckv1.CloudEventOverrides{}
+		err := json.Unmarshal([]byte(sbc.CeOverrides), &overrides)
+		if err != nil {
+			return nil, fmt.Errorf("parsing cloud event overrides failed: %w", err)
+		}
+		ceOverrides = &overrides
+	}
+
+	adapter := Adapter{*qry, sinkUrl, ceOverrides}
 	return &adapter, nil
 }
 
@@ -83,6 +102,12 @@ func (a *Adapter) GetEvents() ([]cloudevents.Event, error) {
 		event.SetExtension("region", a.ctsServiceClient.RegionID)
 		event.SetExtension("domain", a.ctsServiceClient.DomainID)
 		event.SetExtension("tenant", a.ctsServiceClient.ProjectID)
+
+		if a.ceOverrides != nil && a.ceOverrides.Extensions != nil {
+			for n, v := range a.ceOverrides.Extensions {
+				event.SetExtension(n, v)
+			}
+		}
 
 		events = append(events, event)
 	}
