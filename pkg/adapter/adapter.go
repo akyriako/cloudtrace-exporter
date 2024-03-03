@@ -1,10 +1,12 @@
 package adapter
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/akyriako/opentelekomcloud/auth"
-	cloudevents "github.com/cloudevents/sdk-go"
+	cloudevents "github.com/cloudevents/sdk-go/v2"
+	"github.com/hashicorp/go-multierror"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
 	"net/url"
 	"strings"
@@ -26,6 +28,7 @@ type SinkBindingConfig struct {
 
 type Adapter struct {
 	ctsQuerier
+	ceClient    *cloudevents.Client
 	sinkUrl     *url.URL
 	ceOverrides *duckv1.CloudEventOverrides
 }
@@ -51,7 +54,17 @@ func NewAdapter(c *auth.OpenTelekomCloudClient, cqc CtsQuerierConfig, sbc SinkBi
 		ceOverrides = &overrides
 	}
 
-	adapter := Adapter{*qry, sinkUrl, ceOverrides}
+	ceProtocol, err := cloudevents.NewHTTP(cloudevents.WithTarget(sinkUrl.String()))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create http protocol: %w", err)
+	}
+
+	ceClient, err := cloudevents.NewClient(ceProtocol, cloudevents.WithUUIDs(), cloudevents.WithTimeNow())
+	if err != nil {
+		return nil, fmt.Errorf("failed to create http client: %w", err)
+	}
+
+	adapter := Adapter{*qry, &ceClient, sinkUrl, ceOverrides}
 	return &adapter, nil
 }
 
@@ -91,8 +104,7 @@ func (a *Adapter) GetEvents() ([]cloudevents.Event, error) {
 
 		event.SetTime(time.UnixMilli(trace.Time))
 
-		event.SetDataContentType(cloudevents.ApplicationJSON)
-		err := event.SetData(trace)
+		err := event.SetData(cloudevents.ApplicationJSON, trace)
 		if err != nil {
 			return nil, err
 		}
@@ -116,6 +128,16 @@ func (a *Adapter) GetEvents() ([]cloudevents.Event, error) {
 }
 
 func (a *Adapter) SendEvents(events []cloudevents.Event) error {
+	var result *multierror.Error
 
-	return nil
+	if len(events) > 0 {
+		for _, event := range events {
+			if res := (*a.ceClient).Send(context.Background(), event); !cloudevents.IsACK(res) {
+				err := fmt.Errorf("sending event %s failed: %w", event.ID(), res)
+				result = multierror.Append(result, err)
+			}
+		}
+	}
+
+	return result.ErrorOrNil()
 }
