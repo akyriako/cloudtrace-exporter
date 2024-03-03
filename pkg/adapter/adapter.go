@@ -28,7 +28,7 @@ type SinkBindingConfig struct {
 
 type Adapter struct {
 	ctsQuerier
-	ceClient    *cloudevents.Client
+	ceClient    cloudevents.Client
 	sinkUrl     *url.URL
 	ceOverrides *duckv1.CloudEventOverrides
 }
@@ -39,7 +39,7 @@ func NewAdapter(c *auth.OpenTelekomCloudClient, cqc CtsQuerierConfig, sbc SinkBi
 		return nil, err
 	}
 
-	sinkUrl, err := url.Parse(sbc.SinkUrl)
+	sinkUrl, err := url.ParseRequestURI(sbc.SinkUrl)
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +64,7 @@ func NewAdapter(c *auth.OpenTelekomCloudClient, cqc CtsQuerierConfig, sbc SinkBi
 		return nil, fmt.Errorf("failed to create http client: %w", err)
 	}
 
-	adapter := Adapter{*qry, &ceClient, sinkUrl, ceOverrides}
+	adapter := Adapter{*qry, ceClient, sinkUrl, ceOverrides}
 	return &adapter, nil
 }
 
@@ -130,9 +130,9 @@ func (a *Adapter) GetEvents() ([]cloudevents.Event, error) {
 func (a *Adapter) SendEvents(events []cloudevents.Event) error {
 	var result *multierror.Error
 
-	if len(events) > 0 {
+	if events != nil && len(events) > 0 {
 		for _, event := range events {
-			if res := (*a.ceClient).Send(context.Background(), event); !cloudevents.IsACK(res) {
+			if res := a.ceClient.Send(context.Background(), event); !cloudevents.IsACK(res) {
 				err := fmt.Errorf("sending event %s failed: %w", event.ID(), res)
 				result = multierror.Append(result, err)
 			}

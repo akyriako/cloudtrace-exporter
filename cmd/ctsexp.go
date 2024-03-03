@@ -128,7 +128,7 @@ func main() {
 		} else {
 			if config.Debug {
 				for _, event := range events {
-					slog.Debug(fmt.Sprintf("collected event %s from %s", event.ID(), event.Source()))
+					slog.Debug(fmt.Sprintf("collected event '%s' from %s", event.ID(), event.Source()))
 				}
 			}
 		}
