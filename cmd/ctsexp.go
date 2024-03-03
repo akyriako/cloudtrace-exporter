@@ -10,6 +10,7 @@ import (
 	"log/slog"
 	"os"
 	"strings"
+	"time"
 )
 
 type environment struct {
@@ -101,19 +102,25 @@ func main() {
 		os.Exit(exitCodeOpenTelekomCloudClientError)
 	}
 
-	events, err := ctsAdapter.GetEvents()
-	if err != nil {
-		slog.Error(fmt.Sprintf("querying cloud trace service failed: %s", err))
-		os.Exit(exitCodeOpenTelekomCloudClientError)
-	}
+	interval := time.Duration(config.From) * time.Minute
+	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
 
-	if config.PullAndPush {
-		err := ctsAdapter.SendEvents(events)
+	for {
+		events, err := ctsAdapter.GetEvents()
 		if err != nil {
-			slog.Error(fmt.Sprintf("delivering cloud events failed: %s", err))
-			os.Exit(exitCodeDeliveringCloudEventsError)
+			slog.Error(fmt.Sprintf("querying cloud trace service failed: %s", err))
 		}
-	} else {
-		spew.Dump(events)
+
+		if config.PullAndPush {
+			err := ctsAdapter.SendEvents(events)
+			if err != nil {
+				slog.Error(fmt.Sprintf("delivering cloud events failed: %s", err))
+			}
+		} else {
+			spew.Dump(events)
+		}
+
+		<-ticker.C
 	}
 }
