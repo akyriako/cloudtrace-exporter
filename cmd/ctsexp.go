@@ -116,7 +116,7 @@ func main() {
 		slog.Info(fmt.Sprintf("collected %d cloud events", len(events)))
 		if config.Debug {
 			for _, event := range events {
-				slog.Debug(fmt.Sprintf("collected event '%s' from %s", event.ID(), event.Source()))
+				slog.Debug("collected event", "id", event.ID(), "type", event.Type(), "source", event.Source(), "subject", event.Subject())
 			}
 		}
 
