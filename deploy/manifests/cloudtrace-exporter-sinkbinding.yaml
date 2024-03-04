@@ -5,13 +5,13 @@ metadata:
   namespace: default
 spec:
   subject:
-    apiVersion: batch/v1
-    kind: CronJob
+    apiVersion: apps/v1
+    kind: Deployment
     selector:
       matchLabels:
-        app: cloudtrace-exporter-cron
+        app: cloudtrace-exporter
   sink:
     ref:
       apiVersion: serving.knative.dev/v1
       kind: Service
-      name: http://event-display.default.svc.cluster.local
+      name: event-display

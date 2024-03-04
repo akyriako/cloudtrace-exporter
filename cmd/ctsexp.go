@@ -114,7 +114,7 @@ func main() {
 		}
 
 		if config.PullAndPush {
-			err := ctsAdapter.SendEvents(events)
+			sent, err := ctsAdapter.SendEvents(events)
 			if err != nil {
 				var merr *multierror.Error
 				if errors.As(err, &merr) {
@@ -125,11 +125,14 @@ func main() {
 					slog.Error(fmt.Sprintf("delivering cloud events failed: %s", err))
 				}
 			}
+			slog.Info(fmt.Sprintf("delivered %d/%d cloud events", sent, len(events)))
 		} else {
 			if config.Debug {
 				for _, event := range events {
 					slog.Debug(fmt.Sprintf("collected event '%s' from %s", event.ID(), event.Source()))
 				}
+			} else {
+				slog.Info(fmt.Sprintf("collected %d cloud events", len(events)))
 			}
 		}
 

@@ -127,17 +127,20 @@ func (a *Adapter) GetEvents() ([]cloudevents.Event, error) {
 	return events, nil
 }
 
-func (a *Adapter) SendEvents(events []cloudevents.Event) error {
+func (a *Adapter) SendEvents(events []cloudevents.Event) (int, error) {
 	var result *multierror.Error
+	sent := len(events)
 
 	if events != nil && len(events) > 0 {
 		for _, event := range events {
 			if res := a.ceClient.Send(context.Background(), event); !cloudevents.IsACK(res) {
 				err := fmt.Errorf("sending event %s failed: %w", event.ID(), res)
 				result = multierror.Append(result, err)
+
+				sent -= 1
 			}
 		}
 	}
 
-	return result.ErrorOrNil()
+	return sent, result.ErrorOrNil()
 }

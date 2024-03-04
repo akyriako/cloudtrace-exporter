@@ -1,0 +1,15 @@
+apiVersion: sources.knative.dev/v1
+kind: ContainerSource
+metadata:
+  name: cloudtrace-exporter-source
+spec:
+  template:
+    spec:
+      containers:
+        - image: gcr.io/knative-nightly/knative.dev/eventing/cmd/heartbeats:latest
+          name: heartbeats
+  sink:
+    ref:
+      apiVersion: serving.knative.dev/v1
+      kind: Service
+      name: event-display

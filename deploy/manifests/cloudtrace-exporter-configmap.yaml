@@ -5,9 +5,7 @@ metadata:
   namespace: default
 data:
   OS_CLOUD: "otc"
-  OS_DEBUG: "true"
-  CTS_X_PNP: "false"
-  CTS_FROM: "1"
-  K_SINK: "http://event-display.default.svc.cluster.local"
-
+  OS_DEBUG: "false"
+  CTS_X_PNP: "true"
+  CTS_FROM: "10800"
   
