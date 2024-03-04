@@ -103,6 +103,8 @@ func main() {
 		os.Exit(exitCodeOpenTelekomCloudClientError)
 	}
 
+	slog.Info("started cloud trace adapter", "domain", client.ProjectClient.DomainID, "region", client.ProjectClient.RegionID, "project", client.ProjectClient.ProjectID, "tracker", config.Tracker, "periodInMinutes", config.From, "sink", config.SinkUrl)
+
 	interval := time.Duration(config.From) * time.Minute
 	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
@@ -133,7 +135,7 @@ func main() {
 						slog.Error(fmt.Sprintf("delivering cloud events failed: %s", err))
 					}
 				}
-				slog.Info(fmt.Sprintf("delivered %d/%d cloud events", sent, len(events)))
+				slog.Info(fmt.Sprintf("delivered %d/%d cloud events", sent, len(events)), "sink", config.SinkUrl)
 			}
 		}
 

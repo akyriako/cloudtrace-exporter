@@ -4,10 +4,47 @@ metadata:
   name: cloudtrace-exporter-source
 spec:
   template:
+    metadata:
+      name: cloudtrace-exporter
+      labels:
+        app: cloudtrace-exporter
     spec:
       containers:
-        - image: gcr.io/knative-nightly/knative.dev/eventing/cmd/heartbeats:latest
-          name: heartbeats
+        - name: cloudtrace-exporter
+          image: akyriako78/cloudtrace-exporter:v0.0.8
+          command:
+            - "/layers/google.go.build/bin/main"
+          env:
+            - name: OS_CLOUD
+              valueFrom:
+                configMapKeyRef:
+                  name: cloudtrace-exporter-config
+                  key: OS_CLOUD
+            - name: OS_DEBUG
+              valueFrom:
+                configMapKeyRef:
+                  name: cloudtrace-exporter-config
+                  key: OS_DEBUG
+            - name: CTS_X_PNP
+              valueFrom:
+                configMapKeyRef:
+                  name: cloudtrace-exporter-config
+                  key: CTS_X_PNP
+            - name: CTS_FROM
+              valueFrom:
+                configMapKeyRef:
+                  name: cloudtrace-exporter-config
+                  key: CTS_FROM
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - name: clouds-secret-volume
+              mountPath: /workspace/clouds.yaml
+              subPath: clouds.yaml
+      restartPolicy: Always
+      volumes:
+        - name: clouds-secret-volume
+          secret:
+            secretName: cloudtrace-exporter-clouds
   sink:
     ref:
       apiVersion: serving.knative.dev/v1
