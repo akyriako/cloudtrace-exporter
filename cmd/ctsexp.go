@@ -113,26 +113,27 @@ func main() {
 			slog.Error(fmt.Sprintf("querying cloud trace service failed: %s", err))
 		}
 
-		if config.PullAndPush {
-			sent, err := ctsAdapter.SendEvents(events)
-			if err != nil {
-				var merr *multierror.Error
-				if errors.As(err, &merr) {
-					for _, err := range merr.Errors {
-						slog.Error(fmt.Sprintf("delivering cloud event failed: %s", err))
-					}
-				} else {
-					slog.Error(fmt.Sprintf("delivering cloud events failed: %s", err))
-				}
+		slog.Info(fmt.Sprintf("collected %d cloud events", len(events)))
+		if config.Debug {
+			for _, event := range events {
+				slog.Debug(fmt.Sprintf("collected event '%s' from %s", event.ID(), event.Source()))
 			}
-			slog.Info(fmt.Sprintf("delivered %d/%d cloud events", sent, len(events)))
-		} else {
-			if config.Debug {
-				for _, event := range events {
-					slog.Debug(fmt.Sprintf("collected event '%s' from %s", event.ID(), event.Source()))
+		}
+
+		if config.PullAndPush {
+			if len(events) > 0 {
+				sent, err := ctsAdapter.SendEvents(events)
+				if err != nil {
+					var merr *multierror.Error
+					if errors.As(err, &merr) {
+						for _, err := range merr.Errors {
+							slog.Error(fmt.Sprintf("delivering cloud event failed: %s", err))
+						}
+					} else {
+						slog.Error(fmt.Sprintf("delivering cloud events failed: %s", err))
+					}
 				}
-			} else {
-				slog.Info(fmt.Sprintf("collected %d cloud events", len(events)))
+				slog.Info(fmt.Sprintf("delivered %d/%d cloud events", sent, len(events)))
 			}
 		}
 

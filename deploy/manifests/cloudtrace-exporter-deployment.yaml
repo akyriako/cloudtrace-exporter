@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: cloudtrace-exporter
-          image: akyriako78/cloudtrace-exporter:v0.0.4
+          image: akyriako78/cloudtrace-exporter:v0.0.5
           command:
             - "/layers/google.go.build/bin/main"
           env:

@@ -7,5 +7,5 @@ data:
   OS_CLOUD: "otc"
   OS_DEBUG: "false"
   CTS_X_PNP: "true"
-  CTS_FROM: "10800"
+  CTS_FROM: "1"
   
