@@ -2,3 +2,4 @@ clouds.yaml
 deploy/manifests/cloudtrace-exporter-clouds-secret.yaml
 dist/
 tmp/
+bin/
