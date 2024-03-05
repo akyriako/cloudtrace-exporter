@@ -4,7 +4,7 @@ IMG_TAG ?= $(shell git rev-parse --short HEAD)
 IMG_NAME ?= cloudtrace-exporter
 DOCKER_HUB_NAME ?= $(shell docker info | sed '/Username:/!d;s/.* //')
 IMG ?= $(DOCKER_HUB_NAME)/$(IMG_NAME):$(IMG_TAG)
-KO_DOCKER_REPO ?= $(DOCKER_HUB_NAME)/$(IMG_NAME)
+KO_DOCKER_REPO ?= kind.local
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -75,11 +75,16 @@ $(KO): $(LOCALBIN)
 ko-build: ko ## Use ko build to build locally.
 	$(KO) build --local --bare github.com/akyriako/cloudtrace-exporter/cmd
 
-ko-push: ko $(KO_DOCKER_REPO) ## Use ko build to build and push to remote hub.
+ko-push: ko ## Use ko build to build and push to remote hub.
 	echo $(KO_DOCKER_REPO)
 
 ko-deploy: ko ## Build image locally and deploy Deployment to Kubernetes.
 	$(KO) apply --local --bare -f deploy/manifests/cloudtrace-exporter-deployment.yaml
+
+.PHONY: kind
+kind: $(KO) ## Download kind locally if necessary.
+$(KO): $(LOCALBIN)
+	test -s $(LOCALBIN)/ko || GOBIN=$(LOCALBIN) go install github.com/google/ko@latest
 
 ##@ Deployment
 
@@ -98,8 +103,9 @@ event-display: ## Deploy event-display Sink to Kubernetes.
 configuration: secret ## Deploy the configuration manifests to Kubernetes.
 	kubectl apply -f deploy/manifests/cloudtrace-exporter-configmap.yaml
 
-deploy-sb: event-display configuration ko-deploy ## Deploy Source using SinkBinding.
+install: event-display configuration ko-deploy ## Install using SinkBinding.
 	kubectl apply -f deploy/manifests/cloudtrace-exporter-sinkbinding.yaml
 
-deploy-cs: event-display configuration ko-deploy ## Deploy Source using ContainerSource.
-	kubectl apply -f deploy/manifests/cloudtrace-exporter-containersource.yaml
+.PHONY: uninstall
+uninstall:  ## Uninstall all from Kubernetes.
+	kubectl delete -f deploy/manifests/
