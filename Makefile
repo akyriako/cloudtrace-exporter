@@ -58,20 +58,6 @@ build: fmt vet ## Build manager binary.
 run: fmt vet ## Run a controller from your host.
 	go run .cmd/ctsexp.go
 
-
-ifndef ignore-not-found
-  ignore-not-found = false
-endif
-#
-#.PHONY: deploy
-#deploy: manifests kustomize ## Deploy controller to the K8s cluster specified in ~/.kube/config.
-#	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
-#	$(KUSTOMIZE) build config/default | kubectl apply -f -
-#
-#.PHONY: undeploy
-#undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
-#	$(KUSTOMIZE) build config/default | kubectl delete --ignore-not-found=$(ignore-not-found) -f -
-
 ##@ Build Dependencies
 
 ## Location to install dependencies to
@@ -97,9 +83,8 @@ ko-deploy: ko ## Build image locally and deploy Deployment to Kubernetes.
 
 ##@ Deployment
 
-CLOUDS_YAML := $(shell base64 -i clouds.yaml)
+export CLOUDS_YAML := $(shell cat clouds.yaml | base64 -w0)
 define encode_clouds
-	export CLOUDS_YAML=$(CLOUDS_YAML)
 	envsubst < deploy/manifests/cloudtrace-exporter-clouds-secret.yaml | kubectl apply -f -
 endef
 
@@ -110,11 +95,11 @@ secret: ## Build Secret from clouds.yaml and deploy to Kubernetes.
 event-display: ## Deploy event-display Sink to Kubernetes.
 	kubectl apply -f deploy/manifests/event-display-sink.yaml
 
-manifests: ## Deploy rest of manifests to Kubernetes.
-	kubectl apply -f deploy/manifests/cloudtrace-exporter-clouds-secret.yaml || kubectl apply -f deploy/manifests/cloudtrace-exporter-configmap.yaml
+configuration: secret ## Deploy the configuration manifests to Kubernetes.
+	kubectl apply -f deploy/manifests/cloudtrace-exporter-configmap.yaml
 
-deploy-sb: event-display manifests ko-deploy ## Deploy Source using SinkBinding.
+deploy-sb: event-display configuration ko-deploy ## Deploy Source using SinkBinding.
 	kubectl apply -f deploy/manifests/cloudtrace-exporter-sinkbinding.yaml
 
-deploy-cs: event-display manifests ko-deploy ## Deploy Source using ContainerSource.
+deploy-cs: event-display configuration ko-deploy ## Deploy Source using ContainerSource.
 	kubectl apply -f deploy/manifests/cloudtrace-exporter-containersource.yaml
