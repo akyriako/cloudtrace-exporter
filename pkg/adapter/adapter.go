@@ -109,6 +109,7 @@ func (a *Adapter) GetEvents() ([]cloudevents.Event, error) {
 			return nil, err
 		}
 
+		event.SetExtension("status", trace.TraceStatus)
 		event.SetExtension("code", trace.Code)
 		event.SetExtension("resourceid", trace.ResourceId)
 		event.SetExtension("region", a.ctsServiceClient.RegionID)
