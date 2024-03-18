@@ -37,7 +37,7 @@ func main() {
 	defer close(eventsStream)
 
 	go func() {
-		writeEvent()
+		processEventsStream()
 	}()
 
 	if err := c.StartReceiver(ctx, receiveEvent); err != nil {
@@ -51,8 +51,17 @@ func receiveEvent(event cloudevents.Event) {
 	eventsStream <- event
 }
 
-func writeEvent() {
+func processEventsStream() {
 	for event := range eventsStream {
-		slog.Info("received event", "id", event.ID(), "status", event.Extensions()["status"], "type", event.Type(), "source", event.Source(), "subject", event.Subject())
+		err := writeGraph(event)
+		if err != nil {
+			slog.Error(fmt.Sprintf("processing event failed: %s", err.Error()), "id", event.ID(), "source", event.Source())
+		}
+
+		slog.Info("processed event", "id", event.ID(), "source", event.Source())
 	}
+}
+
+func writeGraph(event cloudevents.Event) error {
+	return nil
 }
