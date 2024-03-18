@@ -152,7 +152,7 @@ process:
 				break process
 			}
 
-			slog.Info("collected event", "id", event.ID(), "type", event.Type(), "source", event.Source(), "subject", event.Subject())
+			slog.Info("collected event", "id", event.ID(), "status", event.Extensions()["status"], "type", event.Type(), "source", event.Source(), "subject", event.Subject())
 			if config.PullAndPush {
 				sendStream <- event
 			}
@@ -171,7 +171,7 @@ func processEvents() {
 	slog.Info(fmt.Sprintf("collected %d cloud events", len(events)))
 	if config.Debug {
 		for _, event := range events {
-			slog.Debug("collected event", "id", event.ID(), "type", event.Type(), "source", event.Source(), "subject", event.Subject())
+			slog.Debug("collected event", "id", event.ID(), "status", event.Extensions()["status"], "type", event.Type(), "source", event.Source(), "subject", event.Subject())
 		}
 	}
 
