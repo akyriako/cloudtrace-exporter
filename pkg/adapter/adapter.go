@@ -112,28 +112,26 @@ func (a *Adapter) SendEvents(events []cloudevents.Event) (int, error) {
 	return sent, result.ErrorOrNil()
 }
 
-func (a *Adapter) GetEventsStream() (<-chan cloudevents.Event, <-chan error) {
-	errStream := make(chan error)
-	defer close(errStream)
-
+func (a *Adapter) GetEventsStream(eventsStream chan<- cloudevents.Event, done chan<- interface{}) {
 	ltr, err := a.getTraces()
 	if err != nil {
-		errStream <- err
+		slog.Error(fmt.Sprintf("querying cloud trace service failed: %s", err))
 	}
 
-	eventsStream := make(chan cloudevents.Event, ltr.MetaData.Count)
-	defer close(eventsStream)
+	if ltr.MetaData.Count > 0 {
+		slog.Info(fmt.Sprintf("collected %d cloud events", ltr.MetaData.Count))
+	}
 
 	for _, trace := range ltr.Traces {
 		event, err := a.TraceToCloudEvent(trace)
 		if err != nil {
-			errStream <- err
+			slog.Error(fmt.Sprintf("transforming trace to cloudevent failed: %s", err))
 		}
 
 		eventsStream <- *event
 	}
 
-	return eventsStream, errStream
+	done <- struct{}{}
 }
 
 func (a *Adapter) SendEventsStream(eventStream <-chan cloudevents.Event) {

@@ -12,6 +12,7 @@ import (
 	"log/slog"
 	"os"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -62,14 +63,6 @@ func init() {
 	slog.SetDefault(logger)
 }
 
-func fromInRange(from uint) error {
-	if from < minFrom || from > maxFrom {
-		return fmt.Errorf("envvar 'from' out of range: %d and %d", minFrom, maxFrom)
-	}
-
-	return nil
-}
-
 func main() {
 	flag.Parse()
 
@@ -115,11 +108,25 @@ func main() {
 	for {
 		if config.ProcessStreams {
 			go func() {
-				receiveStream, errStream := ctsAdapter.GetEventsStream()
+				receiveStream := make(chan cloudevents.Event)
+				defer close(receiveStream)
 
-				go func(receiveStream <-chan cloudevents.Event, errStream <-chan error) {
-					processStreams(receiveStream, errStream)
-				}(receiveStream, errStream)
+				done := make(chan interface{})
+				defer close(done)
+
+				wg := sync.WaitGroup{}
+				wg.Add(1)
+
+				go func(receiveStream chan cloudevents.Event, done chan interface{}) {
+					processEventStream(receiveStream, done)
+					wg.Done()
+				}(receiveStream, done)
+
+				go func(receiveStream chan cloudevents.Event, done chan interface{}) {
+					ctsAdapter.GetEventsStream(receiveStream, done)
+				}(receiveStream, done)
+
+				wg.Wait()
 			}()
 		} else {
 			processEvents()
@@ -129,7 +136,7 @@ func main() {
 	}
 }
 
-func processStreams(receiveStream <-chan cloudevents.Event, errStream <-chan error) {
+func processEventStream(receiveStream <-chan cloudevents.Event, done <-chan interface{}) {
 	sendStream := make(chan cloudevents.Event)
 	defer close(sendStream)
 
@@ -149,10 +156,8 @@ process:
 			if config.PullAndPush {
 				sendStream <- event
 			}
-		case err, ok := <-errStream:
-			if ok {
-				slog.Info(fmt.Sprintf("error while collecting events: %s", err))
-			}
+		case <-done:
+			break process
 		}
 	}
 }
@@ -186,4 +191,12 @@ func processEvents() {
 			slog.Info(fmt.Sprintf("delivered %d/%d cloud events", sent, len(events)), "sink", config.SinkUrl)
 		}
 	}
+}
+
+func fromInRange(from uint) error {
+	if from < minFrom || from > maxFrom {
+		return fmt.Errorf("envvar 'from' out of range: %d and %d", minFrom, maxFrom)
+	}
+
+	return nil
 }
