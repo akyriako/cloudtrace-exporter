@@ -118,8 +118,8 @@ func main() {
 				wg.Add(1)
 
 				go func(receiveStream chan cloudevents.Event, done chan interface{}) {
+					defer wg.Done()
 					processEventStream(receiveStream, done)
-					wg.Done()
 				}(receiveStream, done)
 
 				go func(receiveStream chan cloudevents.Event, done chan interface{}) {
