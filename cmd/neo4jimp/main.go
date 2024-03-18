@@ -9,7 +9,8 @@ import (
 )
 
 var (
-	logger *slog.Logger
+	logger       *slog.Logger
+	eventsStream chan cloudevents.Event
 )
 
 func init() {
@@ -32,6 +33,13 @@ func main() {
 
 	slog.Info(fmt.Sprintf("listening on port %d", 8080))
 
+	eventsStream = make(chan cloudevents.Event)
+	defer close(eventsStream)
+
+	go func() {
+		writeEvent()
+	}()
+
 	if err := c.StartReceiver(ctx, receiveEvent); err != nil {
 		slog.Error("failed to start receiver: %s", err.Error())
 	}
@@ -40,5 +48,11 @@ func main() {
 }
 
 func receiveEvent(event cloudevents.Event) {
-	slog.Info("received event", "id", event.ID(), "status", event.Extensions()["status"], "type", event.Type(), "source", event.Source(), "subject", event.Subject())
+	eventsStream <- event
+}
+
+func writeEvent() {
+	for event := range eventsStream {
+		slog.Info("received event", "id", event.ID(), "status", event.Extensions()["status"], "type", event.Type(), "source", event.Source(), "subject", event.Subject())
+	}
 }
