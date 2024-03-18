@@ -7,7 +7,9 @@ import (
 	"github.com/akyriako/opentelekomcloud/auth"
 	cloudevents "github.com/cloudevents/sdk-go/v2"
 	"github.com/hashicorp/go-multierror"
+	"github.com/opentelekomcloud/gophertelekomcloud/openstack/cts/v2/traces"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
+	"log/slog"
 	"net/url"
 	"strings"
 	"time"
@@ -75,54 +77,18 @@ func (a *Adapter) GetEvents() ([]cloudevents.Event, error) {
 	}
 
 	if ltr.MetaData.Count <= 0 {
-		return nil, err
+		return nil, fmt.Errorf("no traces collected")
 	}
 
 	events := make([]cloudevents.Event, 0, ltr.MetaData.Count)
 
 	for _, trace := range ltr.Traces {
-		event := cloudevents.NewEvent()
-		event.SetID(trace.TraceId)
-
-		event.SetSource(a.ctsServiceClient.Endpoint)
-
-		evtType := strings.ToLower(fmt.Sprintf(
-			"%s.%s.%s.%s",
-			trace.ServiceType,
-			trace.TraceType,
-			trace.ResourceType,
-			trace.TraceName,
-		))
-		evtType = strings.TrimRight(evtType, ".")
-		event.SetType(evtType)
-
-		subject := trace.ResourceId
-		if strings.TrimSpace(trace.ResourceName) != "" {
-			subject = trace.ResourceName
-		}
-		event.SetSubject(subject)
-
-		event.SetTime(time.UnixMilli(trace.Time))
-
-		err := event.SetData(cloudevents.ApplicationJSON, trace)
+		event, err := a.TraceToCloudEvent(trace)
 		if err != nil {
 			return nil, err
 		}
 
-		event.SetExtension("status", trace.TraceStatus)
-		event.SetExtension("code", trace.Code)
-		event.SetExtension("resourceid", trace.ResourceId)
-		event.SetExtension("region", a.ctsServiceClient.RegionID)
-		event.SetExtension("domain", a.ctsServiceClient.DomainID)
-		event.SetExtension("tenant", a.ctsServiceClient.ProjectID)
-
-		if a.ceOverrides != nil && a.ceOverrides.Extensions != nil {
-			for n, v := range a.ceOverrides.Extensions {
-				event.SetExtension(n, v)
-			}
-		}
-
-		events = append(events, event)
+		events = append(events, *event)
 	}
 
 	return events, nil
@@ -144,4 +110,81 @@ func (a *Adapter) SendEvents(events []cloudevents.Event) (int, error) {
 	}
 
 	return sent, result.ErrorOrNil()
+}
+
+func (a *Adapter) GetEventsStream() (<-chan cloudevents.Event, <-chan error) {
+	errStream := make(chan error)
+	defer close(errStream)
+
+	ltr, err := a.getTraces()
+	if err != nil {
+		errStream <- err
+	}
+
+	eventsStream := make(chan cloudevents.Event, ltr.MetaData.Count)
+	defer close(eventsStream)
+
+	for _, trace := range ltr.Traces {
+		event, err := a.TraceToCloudEvent(trace)
+		if err != nil {
+			errStream <- err
+		}
+
+		eventsStream <- *event
+	}
+
+	return eventsStream, errStream
+}
+
+func (a *Adapter) SendEventsStream(eventStream <-chan cloudevents.Event) {
+	for event := range eventStream {
+		if res := a.ceClient.Send(context.Background(), event); !cloudevents.IsACK(res) {
+			slog.Error(fmt.Sprintf("sending event %s failed: %s", event.ID(), res))
+		}
+	}
+}
+
+func (a *Adapter) TraceToCloudEvent(trace traces.Traces) (*cloudevents.Event, error) {
+	event := cloudevents.NewEvent()
+	event.SetID(trace.TraceId)
+
+	event.SetSource(a.ctsServiceClient.Endpoint)
+
+	evtType := strings.ToLower(fmt.Sprintf(
+		"%s.%s.%s.%s",
+		trace.ServiceType,
+		trace.TraceType,
+		trace.ResourceType,
+		trace.TraceName,
+	))
+	evtType = strings.TrimRight(evtType, ".")
+	event.SetType(evtType)
+
+	subject := trace.ResourceId
+	if strings.TrimSpace(trace.ResourceName) != "" {
+		subject = trace.ResourceName
+	}
+	event.SetSubject(subject)
+
+	event.SetTime(time.UnixMilli(trace.Time))
+
+	err := event.SetData(cloudevents.ApplicationJSON, trace)
+	if err != nil {
+		return nil, err
+	}
+
+	event.SetExtension("status", trace.TraceStatus)
+	event.SetExtension("code", trace.Code)
+	event.SetExtension("resourceid", trace.ResourceId)
+	event.SetExtension("region", a.ctsServiceClient.RegionID)
+	event.SetExtension("domain", a.ctsServiceClient.DomainID)
+	event.SetExtension("tenant", a.ctsServiceClient.ProjectID)
+
+	if a.ceOverrides != nil && a.ceOverrides.Extensions != nil {
+		for n, v := range a.ceOverrides.Extensions {
+			event.SetExtension(n, v)
+		}
+	}
+
+	return &event, nil
 }
