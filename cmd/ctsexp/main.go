@@ -152,10 +152,11 @@ process:
 				break process
 			}
 
-			slog.Info("collected event", "id", event.ID(), "status", event.Extensions()["status"], "type", event.Type(), "source", event.Source(), "subject", event.Subject())
 			if config.PullAndPush {
 				sendStream <- event
 			}
+
+			slog.Info("processed event", "id", event.ID(), "status", event.Extensions()["status"], "type", event.Type(), "source", event.Source(), "subject", event.Subject())
 		case <-done:
 			break process
 		}
