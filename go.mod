@@ -7,6 +7,7 @@ require (
 	github.com/caarlos0/env/v10 v10.0.0
 	github.com/cloudevents/sdk-go/v2 v2.15.2
 	github.com/hashicorp/go-multierror v1.1.1
+	github.com/neo4j/neo4j-go-driver/v5 v5.18.0
 	github.com/opentelekomcloud/gophertelekomcloud v0.9.1
 	knative.dev/pkg v0.0.0-20240313155908-adefab46f5e5
 )

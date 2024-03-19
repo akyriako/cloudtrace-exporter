@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/akyriako/cloudtrace-exporter/pkg/neo4j"
 	cloudevents "github.com/cloudevents/sdk-go/v2"
 	"log/slog"
 	"os"
@@ -25,9 +26,16 @@ func init() {
 func main() {
 	ctx := context.TODO()
 
+	client, err := neo4j.NewClient(ctx, neo4j.ClientConfig{})
+	if err != nil {
+		slog.Error(fmt.Sprintf("failed to create neo4j client: %s", err.Error()))
+		os.Exit(-1)
+	}
+	defer client.Close(ctx)
+
 	c, err := cloudevents.NewClientHTTP()
 	if err != nil {
-		slog.Error("failed to create client: %s", err.Error())
+		slog.Error("failed to create cloudevents client: %s", err.Error())
 		os.Exit(-1)
 	}
 
@@ -42,6 +50,7 @@ func main() {
 
 	if err := c.StartReceiver(ctx, receiveEvent); err != nil {
 		slog.Error("failed to start receiver: %s", err.Error())
+		os.Exit(-1)
 	}
 
 	<-ctx.Done()
