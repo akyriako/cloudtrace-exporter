@@ -8,11 +8,16 @@ import (
 
 const (
 	cypher string = `MERGE (region:REGION {name: $region})
-MERGE (tenant:TENANT {tenantId: $tenantId, domainId: $domainId})-[:LOCATED_AT]->(region) 
-MERGE (resource:RESOURCE {id: $resourceId})-[:MEMBER_OF]->(tenant)
+MERGE (status:STATUS {id: $status})
+MERGE (subject:SUBJECT {id: $subject})
+MERGE (tenant:TENANT {tenantId: $tenantId, domainId: $domainId}) 
+MERGE (resource:RESOURCE {id: $resourceId})
 MERGE (action:ACTION {id: $actionId, timestamp: $timestamp, source: $source, type: $type, status: $status})-[:APPLIED_ON]->(resource)
-MERGE (subject:SUBJECT {id: $status})<-[:PERFORMED_BY]-(action)
-RETURN action,resource,subject`
+MERGE (tenant)-[:LOCATED_AT]->(region)
+MERGE (resource)-[:MEMBER_OF]->(tenant)
+MERGE (action)-[:APPLIED_ON]->(resource)
+MERGE (action)-[:WITH_STATUS]->(status)
+MERGE (action)-[:PERFORMED_BY {status: $status}]->(subject)`
 )
 
 type Client struct {
@@ -59,6 +64,7 @@ func (c *Client) WriteEventGraph(ctx context.Context, event cloudevents.Event) e
 				"source":     event.Source(),
 				"type":       event.Type(),
 				"status":     event.Extensions()["status"],
+				"subject":    event.Subject(),
 			})
 		if err != nil {
 			return nil, err
