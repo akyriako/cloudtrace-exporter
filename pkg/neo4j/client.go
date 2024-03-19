@@ -12,12 +12,12 @@ MERGE (status:STATUS {id: $status})
 MERGE (subject:SUBJECT {id: $subject})
 MERGE (tenant:TENANT {tenantId: $tenantId, domainId: $domainId}) 
 MERGE (resource:RESOURCE {id: $resourceId})
-MERGE (action:ACTION {id: $actionId, timestamp: $timestamp, source: $source, type: $type, status: $status})-[:APPLIED_ON]->(resource)
+MERGE (action:ACTION {id: $actionId, timestamp: $timestamp, source: $source, type: $type})-[:APPLIED_ON]->(resource)
 MERGE (tenant)-[:LOCATED_AT]->(region)
 MERGE (resource)-[:MEMBER_OF]->(tenant)
 MERGE (action)-[:APPLIED_ON]->(resource)
 MERGE (action)-[:WITH_STATUS]->(status)
-MERGE (action)-[:PERFORMED_BY {status: $status}]->(subject)`
+MERGE (action)-[:PERFORMED_BY]->(subject)`
 )
 
 type Client struct {

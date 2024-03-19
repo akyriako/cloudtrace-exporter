@@ -48,13 +48,15 @@ func main() {
 	defer nc.Close(ctx)
 	client = nc
 
+	slog.Info("connected to neo4j instance", "uri", config.Uri)
+
 	c, err := cloudevents.NewClientHTTP()
 	if err != nil {
 		slog.Error("failed to create cloudevents client: %s", err.Error())
 		os.Exit(exitCodeInternalError)
 	}
 
-	slog.Info(fmt.Sprintf("listening on port %d", 8080))
+	slog.Info("listening for cloudevents", "port", "8080")
 
 	eventsStream = make(chan cloudevents.Event)
 	defer close(eventsStream)
