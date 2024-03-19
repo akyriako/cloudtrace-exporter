@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/akyriako/cloudtrace-exporter/pkg/neo4j"
+	"github.com/caarlos0/env/v10"
 	cloudevents "github.com/cloudevents/sdk-go/v2"
 	"log/slog"
 	"os"
@@ -12,9 +13,22 @@ import (
 var (
 	logger       *slog.Logger
 	eventsStream chan cloudevents.Event
+	client       *neo4j.Client
+	config       neo4j.ClientConfig
+)
+
+const (
+	exitCodeConfigurationError int = 78
+	exitCodeInternalError      int = 70
 )
 
 func init() {
+	err := env.Parse(&config)
+	if err != nil {
+		slog.Error(fmt.Sprintf("parsing env variables failed: %s", err.Error()))
+		os.Exit(exitCodeConfigurationError)
+	}
+
 	levelInfo := slog.LevelInfo
 	logger = slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
 		Level: levelInfo,
@@ -26,17 +40,18 @@ func init() {
 func main() {
 	ctx := context.TODO()
 
-	client, err := neo4j.NewClient(ctx, neo4j.ClientConfig{})
+	nc, err := neo4j.NewClient(ctx, config)
 	if err != nil {
 		slog.Error(fmt.Sprintf("failed to create neo4j client: %s", err.Error()))
-		os.Exit(-1)
+		os.Exit(exitCodeConfigurationError)
 	}
-	defer client.Close(ctx)
+	defer nc.Close(ctx)
+	client = nc
 
 	c, err := cloudevents.NewClientHTTP()
 	if err != nil {
 		slog.Error("failed to create cloudevents client: %s", err.Error())
-		os.Exit(-1)
+		os.Exit(exitCodeInternalError)
 	}
 
 	slog.Info(fmt.Sprintf("listening on port %d", 8080))
@@ -44,9 +59,9 @@ func main() {
 	eventsStream = make(chan cloudevents.Event)
 	defer close(eventsStream)
 
-	go func() {
-		processEventsStream()
-	}()
+	go func(ctx context.Context) {
+		processEventsStream(ctx)
+	}(ctx)
 
 	if err := c.StartReceiver(ctx, receiveEvent); err != nil {
 		slog.Error("failed to start receiver: %s", err.Error())
@@ -60,17 +75,13 @@ func receiveEvent(event cloudevents.Event) {
 	eventsStream <- event
 }
 
-func processEventsStream() {
+func processEventsStream(ctx context.Context) {
 	for event := range eventsStream {
-		err := writeGraph(event)
+		err := client.WriteEventGraph(ctx, event)
 		if err != nil {
 			slog.Error(fmt.Sprintf("processing event failed: %s", err.Error()), "id", event.ID(), "source", event.Source())
 		}
 
 		slog.Info("processed event", "id", event.ID(), "source", event.Source())
 	}
-}
-
-func writeGraph(event cloudevents.Event) error {
-	return nil
 }
