@@ -45,7 +45,7 @@ a **RESOURCE** (ECS instance, CCE cluster etc) resulting _WITH_STATUS_ either **
 the outcome of this **ACTION**. The **RESOURCE** is _MEMBER_OF_ a **TENANT** which is _LOCATED_AT_ a specific **REGION**. 
 The central element of this domain model is the **ACTION**.
 
-Terms in **BOLD** signify a **Node** and those in **ITALICS** signify a **Relationship**.
+Terms in **BOLD** signify a **Node** and those in _ITALICS_ signify a **Relationship**.
 
 Neo4j is widely used in various applications that require efficient analysis and querying of complex networks of data. 
 Examples include social networks, recommendation engines, fraud detection, network and IT operations, and more. It 
