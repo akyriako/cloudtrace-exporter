@@ -7,7 +7,7 @@ clouds:
       ak: '<ACCESS_KEY>'
       sk: '<SECRET_KEY>'
       project_name: 'eu-de_<PROJECT_NAME>
-      user_domain_name: 'OTC00000000001000000xxx'
+      user_domain_name: 'OTC0000000000xxxxxxxxxx'
       auth_url: 'https://iam.eu-de.otc.t-systems.com:443/v3'
     interface: 'public'
     identity_api_version: 3
