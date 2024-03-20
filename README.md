@@ -41,6 +41,8 @@ clouds:
 
 ```
 
+> **_WARNING:_**  **clouds.yaml** is already added to **.gitignore** so there is no danger leaking its sensitive contents to your repo.
+
 Additionally you need to set the following environment variables for **cts_exporter**: 
 
 - `OS_CLOUD` the cloud profile you want to choose from your **cloud.yaml** file
