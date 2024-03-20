@@ -47,7 +47,7 @@ Additionally you need to set the following environment variables for **cts_expor
 - `OS_DEBUG` whether you want to swap to debug mode, defaults to `false`
 - `CTS_TRACKER` the CTS tracker you want to hook on, default to `system`
 - `CTS_FROM` an integer value in minutes, that signifies how long in the past to look for traces and the interval between two consecutive queries, defaults to `5`
-- `CTS_X_PNP` whether you want to utilize the Knative Eventing functionality and push the collected traces to a sink, defaults to `true` 
+- `CTS_X_PNP` whether you want to push the collected traces to a sink, defaults to `true` 
 - `K_SINK` the URL of the resolved sink
 - `K_CE_OVERRIDES` a JSON object that specifies overrides to the outbound event
 
