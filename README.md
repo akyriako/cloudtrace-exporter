@@ -1,7 +1,7 @@
 # cloudtrace-exporter
 
-A custom exporter that collects traces from [Open Telekom Cloud](https://www.open-telekom-cloud.com/en) CloudTrace service and loads them as graph in a 
-neo4j database.
+A custom exporter that collects traces from [Open Telekom Cloud](https://www.open-telekom-cloud.com/en) CloudTrace service and loads them as graph in a
+[Neo4j](https://neo4j.com/) database.
 
 [Cloud Trace Service (CTS)](https://www.open-telekom-cloud.com/en/products-services/core-services/cloud-trace) is an 
 effective monitoring tool that allows users to analyze their cloud resources using traces. A tracker is automatically 
@@ -14,9 +14,9 @@ This custom exporter is taking a different route. It's utilizing [Knative Eventi
 to create a custom source (**cts_exporter**) that collects traces from CTS and forwards them, as [Cloud Events](https://cloudevents.io/) 
 to an agnostic _sink_, defined by an environment variable called `K_SINK`, as is required by Knative Eventing specifications 
 for interconnecting microservices. In addition to cts_exporter, a custom sink (**neo4j_sink**) that listens for those 
-Cloud Events is provided, which loads these events in a [Neo4j](https://neo4j.com/) database as graphs. You could positively bind the cts_exporter
+Cloud Events is provided, which loads these events in a Neo4j database as graphs. You could positively bind the cts_exporter
 to any other that sink that conforms to Knative specifications. You can find an example in the repo that uses
-_gcr.io/knative-releases/knative.dev/eventing/cmd/event_display_ as a target. That is a simple Knative Eventing Service that
+_gcr.io/knative-releases/knative.dev/eventing/cmd/event_display_ as a target sink. That is a demo Knative Eventing Service that
 simply logs the events in the `os.Stdout`. 
 
 ![graph.png](assets%2Fimg%2Fgraph.png)
