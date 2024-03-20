@@ -36,6 +36,16 @@ in which tenant is this resource is member, in which region is this tenant locat
 - **Properties** are key-value pairs attached to nodes and relationships, allowing for the storage of additional 
 information about those elements (such as unique identifiers for nodes, tenant and domain identifiers, subjects name etc)
 
+The graph generated for every CloudTrace record can be summarized by the following domain object:
+
+![graph-mock.png](assets%2Fimg%2Fgraph-mock.png)
+
+An **ACTION** (login, logout, start an ECS instance) is _PERFORMED_BY_ a **SUBJECT** (user, agent etc) and is _APPLIED_ON_ 
+a **RESOURCE** (ECS instance, CCE cluster etc) resulting _WITH_STATUS_ either **NORMAL** or **WARNING** depending on 
+the outcome of this **ACTION**. The **RESOURCE** is _MEMBER_OF_ a **TENANT** which is _LOCATED_AT_ in a specific **REGION**. 
+
+Terms in **BOLD** signify a **Node** and those in **ITALICS** signify a **Relationship**.
+
 Neo4j is widely used in various applications that require efficient analysis and querying of complex networks of data. 
 Examples include social networks, recommendation engines, fraud detection, network and IT operations, and more. It 
 offers a powerful query language called [Cypher](https://neo4j.com/product/cypher-graph-query-language/), specifically 
