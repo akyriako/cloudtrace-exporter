@@ -33,8 +33,8 @@ represent and store data. In this context:
 
 Neo4j is widely used in various applications that require efficient analysis and querying of complex networks of data. 
 Examples include social networks, recommendation engines, fraud detection, network and IT operations, and more. It 
-offers a powerful query language called **Cypher**, specifically designed for working with graph data, enabling users 
-to intuitively and efficiently retrieve and manipulate data within a graph structure.
+offers a powerful query language called [Cypher](https://neo4j.com/product/cypher-graph-query-language/), specifically 
+designed for working with graph data, enabling users to intuitively and efficiently retrieve and manipulate data within a graph structure.
 
 ## Usage
 
