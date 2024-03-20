@@ -35,9 +35,8 @@ var (
 )
 
 const (
-	exitCodeConfigurationError          int  = 1
-	exitCodeOpenTelekomCloudClientError int  = 2
-	exitCodeDeliveringCloudEventsError  int  = 3
+	exitCodeConfigurationError          int  = 78
+	exitCodeOpenTelekomCloudClientError int  = 70
 	minFrom                             uint = 1
 	maxFrom                             uint = 10800
 )
@@ -152,10 +151,11 @@ process:
 				break process
 			}
 
-			slog.Info("collected event", "id", event.ID(), "status", event.Extensions()["status"], "type", event.Type(), "source", event.Source(), "subject", event.Subject())
 			if config.PullAndPush {
 				sendStream <- event
 			}
+
+			slog.Info("processed event", "id", event.ID(), "status", event.Extensions()["status"], "type", event.Type(), "source", event.Source(), "subject", event.Subject())
 		case <-done:
 			break process
 		}
