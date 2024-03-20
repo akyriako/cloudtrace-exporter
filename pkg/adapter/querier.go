@@ -32,8 +32,9 @@ func (q *ctsQuerier) getTraces() (*traces.ListTracesResponse, error) {
 	toInMilliSeconds := time.Now().UTC().UnixNano() / 1e6
 
 	ltr, err := traces.List(q.ctsServiceClient, q.config.TrackerName, traces.ListTracesOpts{
-		From: strconv.FormatInt(fromInMilliSeconds, 10),
-		To:   strconv.FormatInt(toInMilliSeconds, 10),
+		From:  strconv.FormatInt(fromInMilliSeconds, 10),
+		To:    strconv.FormatInt(toInMilliSeconds, 10),
+		Limit: "250",
 	})
 	if err != nil {
 		return nil, err
