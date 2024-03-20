@@ -40,9 +40,9 @@ The graph generated for every CloudTrace record can be summarized by the followi
 
 ![graph-mock.png](assets%2Fimg%2Fgraph-mock.png)
 
-An **ACTION** (login, logout, start an ECS instance) is _PERFORMED_BY_ a **SUBJECT** (user, agent etc) and is _APPLIED_ON_ 
+An **ACTION** (login, logout, start an ECS instance etc) is _PERFORMED_BY_ a **SUBJECT** (user, agent etc) and is _APPLIED_ON_ 
 a **RESOURCE** (ECS instance, CCE cluster etc) resulting _WITH_STATUS_ either **NORMAL** or **WARNING** depending on 
-the outcome of this **ACTION**. The **RESOURCE** is _MEMBER_OF_ a **TENANT** which is _LOCATED_AT_ in a specific **REGION**. 
+the outcome of this **ACTION**. The **RESOURCE** is _MEMBER_OF_ a **TENANT** which is _LOCATED_AT_ a specific **REGION**. 
 
 Terms in **BOLD** signify a **Node** and those in **ITALICS** signify a **Relationship**.
 
