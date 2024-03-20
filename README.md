@@ -19,6 +19,8 @@ to any other that sink that conforms to Knative specifications. You can find an 
 _gcr.io/knative-releases/knative.dev/eventing/cmd/event_display_ as a target. That is a simple Knative Eventing Service that
 simply logs the events in the `os.Stdout`. 
 
+![graph.png](assets%2Fimg%2Fgraph.png)
+
 [Neo4j](https://neo4j.com/) is a highly acclaimed graph database management system developed by Neo4j, Inc. Unlike 
 traditional relational databases that store data in tables, Neo4j is designed around the concept of storing and managing 
 data as nodes and relationships. This structure is particularly well-suited for handling complex and interconnected data, 
