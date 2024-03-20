@@ -30,8 +30,11 @@ Graph databases like Neo4j are based on graph theory and use graph structures wi
 represent and store data. In this context:
 
 - **Nodes** represent entities (such as subjects, actions, resources, tenants & regions in the context of CloudTrace domain).
-- **Relationships** provide directed, named connections between nodes. These relationships can also have properties that provide more context about the connection.
-- **Properties** are key-value pairs attached to nodes and relationships, allowing for the storage of additional information about those elements.
+- **Relationships** provide directed, named connections between nodes. These relationships can also have properties that 
+provide more context about the connection (such as who performed an action, on which resource this action was performed, 
+in which tenant is this resource is member, in which region is this tenant located)
+- **Properties** are key-value pairs attached to nodes and relationships, allowing for the storage of additional 
+information about those elements (such as unique identifiers for nodes, tenant and domain identifiers, subjects name etc)
 
 Neo4j is widely used in various applications that require efficient analysis and querying of complex networks of data. 
 Examples include social networks, recommendation engines, fraud detection, network and IT operations, and more. It 
