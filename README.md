@@ -83,8 +83,8 @@ For **neo4j_sink** you need to set the following environment variables:
 ## Deployment
 
 The project is coming with a `Makefile` that takes care of everything for you, from building (using [ko](https://ko.build/);
-neither Dockerfiles needed nor docker registries) to deployment on a Kubernetes cluster. Only thing you need, is to have
-a Kubernetes cluster in place, already employed with **Knative Serving & Eventing** artifacts.
+neither a `Dockerfile` is needed nor docker registries to push the generated container images) to deployment on a 
+Kubernetes cluster. Only thing you need, is to have a Kubernetes cluster in place, already employed with **Knative Serving & Eventing** artifacts.
 
 Before installing you need to define the values of cts_exporter environment variables in `deploy/manifests/cloudtrace-exporter-configmap.yaml` e.g:
 
