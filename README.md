@@ -29,7 +29,7 @@ making it easier to model, store, and query relationships directly.
 Graph databases like Neo4j are based on graph theory and use graph structures with nodes, edges, and properties to 
 represent and store data. In this context:
 
-- **Nodes** represent entities (such as people, products, or accounts).
+- **Nodes** represent entities (such as subjects, actions, resources, tenants & regions in the context of CloudTrace domain).
 - **Relationships** provide directed, named connections between nodes. These relationships can also have properties that provide more context about the connection.
 - **Properties** are key-value pairs attached to nodes and relationships, allowing for the storage of additional information about those elements.
 
