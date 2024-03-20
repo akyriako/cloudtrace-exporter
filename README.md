@@ -15,7 +15,7 @@ to create a custom source (**cts_exporter**) that collects traces from CTS and f
 to an agnostic _sink_, defined by an environment variable called `K_SINK`, as is required by Knative Eventing specifications 
 for interconnecting microservices. In addition to cts_exporter, a custom sink (**neo4j_sink**) that listens for those 
 Cloud Events is provided, which loads these events in a Neo4j database as graphs. You could positively bind the cts_exporter
-to any other that sink that conforms to Knative specifications. You can find an example in the repo that uses
+to **any** other sink that conforms to Knative specifications. You can find an example in the repo that uses
 _gcr.io/knative-releases/knative.dev/eventing/cmd/event_display_ as a target sink. That is a demo Knative Eventing Service that
 simply logs the events in the `os.Stdout`. 
 
