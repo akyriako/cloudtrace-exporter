@@ -98,7 +98,9 @@ func main() {
 		os.Exit(exitCodeOpenTelekomCloudClientError)
 	}
 
-	slog.Info("started cloud trace adapter", "domain", client.ProjectClient.DomainID, "region", client.ProjectClient.RegionID, "project", client.ProjectClient.ProjectID, "tracker", config.Tracker, "interval", config.From, "sink", config.SinkUrl)
+	slog.Info("started cloud trace adapter",
+		"domain", client.ProjectClient.DomainID, "region", client.ProjectClient.RegionID, "project",
+		client.ProjectClient.ProjectID, "tracker", config.Tracker, "interval", fmt.Sprintf("%vm", config.From), "sink", config.SinkUrl)
 
 	interval := time.Duration(config.From) * time.Minute
 	ticker := time.NewTicker(interval)

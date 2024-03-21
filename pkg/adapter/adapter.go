@@ -190,8 +190,10 @@ func (a *Adapter) GetEventsStream(eventsStream chan<- cloudevents.Event, done ch
 		listTracesOpts.Next = ltr.MetaData.Marker
 	}
 
-	slog.Info(fmt.Sprintf("collected %d events", collected),
-		"project", a.config.ProjectId, "tracker", a.config.TrackerName, "from", fromTime, "to", toTime)
+	if collected > 0 {
+		slog.Info(fmt.Sprintf("collected %d events", collected),
+			"project", a.config.ProjectId, "tracker", a.config.TrackerName, "from", fromTime, "to", toTime)
+	}
 
 	done <- struct{}{}
 }
