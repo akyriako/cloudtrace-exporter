@@ -94,11 +94,11 @@ func main() {
 
 	ctsAdapter, err = adapter.NewAdapter(client, cqc, sbc)
 	if err != nil {
-		slog.Error(fmt.Sprintf("creating a cloud trace adapter failed: %s", err))
+		slog.Error(fmt.Sprintf("creating a cloudtrace adapter failed: %s", err))
 		os.Exit(exitCodeOpenTelekomCloudClientError)
 	}
 
-	slog.Info("started cloud trace adapter",
+	slog.Info("started cloudtrace adapter",
 		"domain", client.ProjectClient.DomainID, "region", client.ProjectClient.RegionID, "project",
 		client.ProjectClient.ProjectID, "tracker", config.Tracker, "interval", fmt.Sprintf("%vm", config.From), "sink", config.SinkUrl)
 
