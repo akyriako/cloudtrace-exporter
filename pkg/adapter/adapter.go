@@ -36,6 +36,10 @@ type Adapter struct {
 	ceOverrides *duckv1.CloudEventOverrides
 }
 
+var (
+	delta time.Duration
+)
+
 func NewAdapter(c *auth.OpenTelekomCloudClient, cqc CtsQuerierConfig, sbc SinkBindingConfig) (*Adapter, error) {
 	qry, err := newCtsQuerier(cqc, c)
 	if err != nil {
@@ -72,8 +76,11 @@ func NewAdapter(c *auth.OpenTelekomCloudClient, cqc CtsQuerierConfig, sbc SinkBi
 }
 
 func (a *Adapter) GetEvents() ([]cloudevents.Event, error) {
-	fromTime := time.Now().Add(time.Duration(-a.ctsQuerier.config.From) * time.Minute).UTC()
-	toTime := time.Now().UTC()
+	now := time.Now()
+	defer trackDelta(now)
+
+	fromTime := now.Add(time.Duration(-a.ctsQuerier.config.From) * time.Minute).Add(-delta).UTC()
+	toTime := now.UTC()
 	fromInMilliSeconds := fromTime.UnixNano() / 1e6
 	toInMilliSeconds := toTime.UnixNano() / 1e6
 
@@ -111,7 +118,11 @@ func (a *Adapter) GetEvents() ([]cloudevents.Event, error) {
 		listTracesOpts.Next = ltr.MetaData.Marker
 	}
 
-	slog.Info(fmt.Sprintf("collected %d events", len(events)), "project", a.config.ProjectId, "tracker", a.config.TrackerName, "from", fromTime, "to", toTime)
+	if len(events) > 0 {
+		slog.Info(fmt.Sprintf("collected %d events", len(events)),
+			"project", a.config.ProjectId, "tracker", a.config.TrackerName, "from", fromTime, "to", toTime)
+	}
+
 	return events, nil
 }
 
@@ -134,8 +145,11 @@ func (a *Adapter) SendEvents(events []cloudevents.Event) (int, error) {
 }
 
 func (a *Adapter) GetEventsStream(eventsStream chan<- cloudevents.Event, done chan<- interface{}) {
-	fromTime := time.Now().Add(time.Duration(-a.ctsQuerier.config.From) * time.Minute).UTC()
-	toTime := time.Now().UTC()
+	now := time.Now()
+	defer trackDelta(now)
+
+	fromTime := now.Add(time.Duration(-a.ctsQuerier.config.From) * time.Minute).Add(-delta).UTC()
+	toTime := now.UTC()
 	fromInMilliSeconds := fromTime.UnixNano() / 1e6
 	toInMilliSeconds := toTime.UnixNano() / 1e6
 
@@ -145,7 +159,7 @@ func (a *Adapter) GetEventsStream(eventsStream chan<- cloudevents.Event, done ch
 		Limit: strconv.Itoa(tracesLowerBound),
 	}
 
-	var collectedTraces int
+	var collected int
 
 	for {
 		ltr, err := a.getTraces(listTracesOpts)
@@ -157,12 +171,12 @@ func (a *Adapter) GetEventsStream(eventsStream chan<- cloudevents.Event, done ch
 			break
 		}
 
-		collectedTraces += ltr.MetaData.Count
+		collected += ltr.MetaData.Count
 
 		for _, trace := range ltr.Traces {
 			event, err := a.TraceToCloudEvent(trace)
 			if err != nil {
-				collectedTraces -= 1
+				collected -= 1
 				slog.Error(fmt.Sprintf("transforming trace to cloudevent failed: %s", err))
 			}
 
@@ -176,7 +190,9 @@ func (a *Adapter) GetEventsStream(eventsStream chan<- cloudevents.Event, done ch
 		listTracesOpts.Next = ltr.MetaData.Marker
 	}
 
-	slog.Info(fmt.Sprintf("collected %d events", collectedTraces), "project", a.config.ProjectId, "tracker", a.config.TrackerName, "from", fromTime, "to", toTime)
+	slog.Info(fmt.Sprintf("collected %d events", collected),
+		"project", a.config.ProjectId, "tracker", a.config.TrackerName, "from", fromTime, "to", toTime)
+
 	done <- struct{}{}
 }
 
@@ -232,4 +248,8 @@ func (a *Adapter) TraceToCloudEvent(trace traces.Traces) (*cloudevents.Event, er
 	}
 
 	return &event, nil
+}
+
+func trackDelta(start time.Time) {
+	delta = time.Since(start)
 }
