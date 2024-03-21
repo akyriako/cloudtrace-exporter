@@ -98,7 +98,7 @@ func main() {
 		os.Exit(exitCodeOpenTelekomCloudClientError)
 	}
 
-	slog.Info("started cloud trace adapter", "domain", client.ProjectClient.DomainID, "region", client.ProjectClient.RegionID, "project", client.ProjectClient.ProjectID, "tracker", config.Tracker, "periodInMinutes", config.From, "sink", config.SinkUrl)
+	slog.Info("started cloud trace adapter", "domain", client.ProjectClient.DomainID, "region", client.ProjectClient.RegionID, "project", client.ProjectClient.ProjectID, "tracker", config.Tracker, "interval", config.From, "sink", config.SinkUrl)
 
 	interval := time.Duration(config.From) * time.Minute
 	ticker := time.NewTicker(interval)
@@ -155,7 +155,7 @@ process:
 				sendStream <- event
 			}
 
-			slog.Info("processed event", "id", event.ID(), "status", event.Extensions()["status"], "type", event.Type(), "source", event.Source(), "subject", event.Subject())
+			slog.Debug("processed event", "id", event.ID(), "status", event.Extensions()["status"], "type", event.Type(), "source", event.Source(), "subject", event.Subject())
 		case <-done:
 			break process
 		}
@@ -168,7 +168,6 @@ func processEvents() {
 		slog.Error(fmt.Sprintf("querying cloud trace service failed: %s", err))
 	}
 
-	slog.Info(fmt.Sprintf("collected %d cloud events", len(events)))
 	if config.Debug {
 		for _, event := range events {
 			slog.Debug("collected event", "id", event.ID(), "status", event.Extensions()["status"], "type", event.Type(), "source", event.Source(), "subject", event.Subject())
