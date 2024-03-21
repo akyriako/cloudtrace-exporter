@@ -6,14 +6,14 @@ import (
 	golangsdk "github.com/opentelekomcloud/gophertelekomcloud"
 	"github.com/opentelekomcloud/gophertelekomcloud/openstack"
 	"github.com/opentelekomcloud/gophertelekomcloud/openstack/cts/v2/traces"
-	"strconv"
 	"strings"
-	"time"
 )
 
 const (
 	defaultTrackerName string = "system"
 	defaultFromPeriod  uint   = 5
+	tracesLowerBound   int    = 50
+	tracesUpperBound   int    = 200
 )
 
 type CtsQuerierConfig struct {
@@ -27,14 +27,8 @@ type ctsQuerier struct {
 	ctsServiceClient *golangsdk.ServiceClient
 }
 
-func (q *ctsQuerier) getTraces() (*traces.ListTracesResponse, error) {
-	fromInMilliSeconds := time.Now().Add(time.Duration(-q.config.From)*time.Minute).UTC().UnixNano() / 1e6
-	toInMilliSeconds := time.Now().UTC().UnixNano() / 1e6
-
-	ltr, err := traces.List(q.ctsServiceClient, q.config.TrackerName, traces.ListTracesOpts{
-		From: strconv.FormatInt(fromInMilliSeconds, 10),
-		To:   strconv.FormatInt(toInMilliSeconds, 10),
-	})
+func (q *ctsQuerier) getTraces(listTracesOpts traces.ListTracesOpts) (*traces.ListTracesResponse, error) {
+	ltr, err := traces.List(q.ctsServiceClient, q.config.TrackerName, listTracesOpts)
 	if err != nil {
 		return nil, err
 	}

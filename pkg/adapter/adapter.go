@@ -11,6 +11,7 @@ import (
 	duckv1 "knative.dev/pkg/apis/duck/v1"
 	"log/slog"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -34,6 +35,10 @@ type Adapter struct {
 	sinkUrl     *url.URL
 	ceOverrides *duckv1.CloudEventOverrides
 }
+
+var (
+	delta time.Duration
+)
 
 func NewAdapter(c *auth.OpenTelekomCloudClient, cqc CtsQuerierConfig, sbc SinkBindingConfig) (*Adapter, error) {
 	qry, err := newCtsQuerier(cqc, c)
@@ -71,24 +76,51 @@ func NewAdapter(c *auth.OpenTelekomCloudClient, cqc CtsQuerierConfig, sbc SinkBi
 }
 
 func (a *Adapter) GetEvents() ([]cloudevents.Event, error) {
-	ltr, err := a.getTraces()
-	if err != nil {
-		return nil, err
+	now := time.Now()
+	defer trackDelta(now)
+
+	fromTime := now.Add(time.Duration(-a.ctsQuerier.config.From) * time.Minute).Add(-delta).UTC()
+	toTime := now.UTC()
+	fromInMilliSeconds := fromTime.UnixNano() / 1e6
+	toInMilliSeconds := toTime.UnixNano() / 1e6
+
+	listTracesOpts := traces.ListTracesOpts{
+		From:  strconv.FormatInt(fromInMilliSeconds, 10),
+		To:    strconv.FormatInt(toInMilliSeconds, 10),
+		Limit: strconv.Itoa(tracesLowerBound),
 	}
 
-	if ltr.MetaData.Count <= 0 {
-		return nil, fmt.Errorf("no traces collected")
-	}
+	events := make([]cloudevents.Event, 0)
 
-	events := make([]cloudevents.Event, 0, ltr.MetaData.Count)
-
-	for _, trace := range ltr.Traces {
-		event, err := a.TraceToCloudEvent(trace)
+	for {
+		ltr, err := a.getTraces(listTracesOpts)
 		if err != nil {
 			return nil, err
 		}
 
-		events = append(events, *event)
+		if ltr.MetaData.Count <= 0 {
+			return nil, fmt.Errorf("no traces collected")
+		}
+
+		for _, trace := range ltr.Traces {
+			event, err := a.TraceToCloudEvent(trace)
+			if err != nil {
+				return nil, err
+			}
+
+			events = append(events, *event)
+		}
+
+		if ltr.MetaData.Marker == "" {
+			break
+		}
+
+		listTracesOpts.Next = ltr.MetaData.Marker
+	}
+
+	if len(events) > 0 {
+		slog.Info(fmt.Sprintf("collected %d events", len(events)),
+			"project", a.config.ProjectId, "tracker", a.config.TrackerName, "from", fromTime, "to", toTime)
 	}
 
 	return events, nil
@@ -113,23 +145,53 @@ func (a *Adapter) SendEvents(events []cloudevents.Event) (int, error) {
 }
 
 func (a *Adapter) GetEventsStream(eventsStream chan<- cloudevents.Event, done chan<- interface{}) {
-	ltr, err := a.getTraces()
-	if err != nil {
-		slog.Error(fmt.Sprintf("querying cloud trace service failed: %s", err))
+	now := time.Now()
+	defer trackDelta(now)
+
+	fromTime := now.Add(time.Duration(-a.ctsQuerier.config.From) * time.Minute).Add(-delta).UTC()
+	toTime := now.UTC()
+	fromInMilliSeconds := fromTime.UnixNano() / 1e6
+	toInMilliSeconds := toTime.UnixNano() / 1e6
+
+	listTracesOpts := traces.ListTracesOpts{
+		From:  strconv.FormatInt(fromInMilliSeconds, 10),
+		To:    strconv.FormatInt(toInMilliSeconds, 10),
+		Limit: strconv.Itoa(tracesLowerBound),
 	}
 
-	if ltr.MetaData.Count > 0 {
-		slog.Info(fmt.Sprintf("collected %d cloud events", ltr.MetaData.Count))
-	}
+	var collected int
 
-	for _, trace := range ltr.Traces {
-		event, err := a.TraceToCloudEvent(trace)
+	for {
+		ltr, err := a.getTraces(listTracesOpts)
 		if err != nil {
-			slog.Error(fmt.Sprintf("transforming trace to cloudevent failed: %s", err))
+			slog.Error(fmt.Sprintf("querying cloud trace service failed: %s", err))
 		}
 
-		eventsStream <- *event
+		if ltr.MetaData.Count <= 0 {
+			break
+		}
+
+		collected += ltr.MetaData.Count
+
+		for _, trace := range ltr.Traces {
+			event, err := a.TraceToCloudEvent(trace)
+			if err != nil {
+				collected -= 1
+				slog.Error(fmt.Sprintf("transforming trace to cloudevent failed: %s", err))
+			}
+
+			eventsStream <- *event
+		}
+
+		if ltr.MetaData.Marker == "" {
+			break
+		}
+
+		listTracesOpts.Next = ltr.MetaData.Marker
 	}
+
+	slog.Info(fmt.Sprintf("collected %d events", collected),
+		"project", a.config.ProjectId, "tracker", a.config.TrackerName, "from", fromTime, "to", toTime)
 
 	done <- struct{}{}
 }
@@ -179,10 +241,15 @@ func (a *Adapter) TraceToCloudEvent(trace traces.Traces) (*cloudevents.Event, er
 	event.SetExtension("tenant", a.ctsServiceClient.ProjectID)
 
 	if a.ceOverrides != nil && a.ceOverrides.Extensions != nil {
-		for n, v := range a.ceOverrides.Extensions {
+		extensions := a.ceOverrides.Extensions
+		for n, v := range extensions {
 			event.SetExtension(n, v)
 		}
 	}
 
 	return &event, nil
+}
+
+func trackDelta(start time.Time) {
+	delta = time.Since(start)
 }
