@@ -1,0 +1,26 @@
+neo4j:
+ name: "n4j-cluster"
+ minimumClusterSize: 1 # increase this value to provision a cluster/only one pod per node otherwise the cluster will not build
+ resources:
+  cpu: 500m
+  memory: 5Gi
+ edition: "community"
+ acceptLicenseAgreement: "no"
+
+volumes:
+ data:
+   mode: "defaultStorageClass"
+
+services:
+  neo4j:
+    spec:
+      type: NodePort
+
+
+
+ 
+# Neo4j configuration (yaml format)
+# config:
+#  dbms.default_database: “neo4j”
+#  dbms.config.strict_validation: “true”
+

@@ -52,7 +52,7 @@ func main() {
 
 	c, err := cloudevents.NewClientHTTP()
 	if err != nil {
-		slog.Error("failed to create cloudevents client: %s", err.Error())
+		slog.Error(fmt.Sprintf("failed to create cloudevents client: %s", err.Error()))
 		os.Exit(exitCodeInternalError)
 	}
 
@@ -66,7 +66,7 @@ func main() {
 	}(ctx)
 
 	if err := c.StartReceiver(ctx, receiveEvent); err != nil {
-		slog.Error("failed to start receiver: %s", err.Error())
+		slog.Error(fmt.Sprintf("failed to start receiver: %s", err.Error()))
 		os.Exit(-1)
 	}
 

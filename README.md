@@ -131,7 +131,32 @@ make uninstall
 
 ## Development
 
-Development comes as well with "batteries included". You can either go ahead and start debugging straight on your local 
-machine, or take advantage of the `.devcontainer` file that can be found in the repo, that sets up an isolated 
+Development comes as well with "batteries included". You can either go ahead and start debugging straight on your local
+machine, or take advantage of the `.devcontainer` file that can be found in the repo, that sets up an isolated
 containerized environment for you with a Neo4j database included.
 
+### Local
+
+Working on your local machine, requires the following:
+
+- Assign values to the environment variables for both binaries, as mentioned earlier in this document
+- Provide a Neo4j database instance. You can choose among a simple container, a Kubernetes workload or even the new [Neo4j Desktop](https://neo4j.com/docs/desktop-manual/current/)
+
+### Dev Container
+
+Dev Container will create a container with all the necessary prerequisites to get you started developing immediately. An
+Ubuntu Jammy container will be spawned with the following features pre-installed:
+
+- Git
+- Docker in Docker
+- Kubectl, Helm, Helmfile, K9s, KinD
+- Latest version of Golang
+- It will deploy a containerized Kubernetes cluster with 1 control and 3 worker nodes, using KinD (cluster manifest is in **.devcontainer/cluster.yaml**) 
+- It will deploy Neo4j as a standalone cluster (you can change that and get a HA cluster by increasing the value of `minimumClusterSize` in **.devcontainer/overrides.yaml**)
+
+Only thing left to you is to install in the Dev Container environment, as long as you are working with Visual Studio Code, 
+the [Bridge to Kubernetes](https://learn.microsoft.com/en-us/visualstudio/bridge/overview-bridge-to-kubernetes) extension 
+and forward the 3 ports (`7473`, `7474` and `7687`) exposed from the **n4j-cluster-lb-neo4j** Service, so your Neo4j 
+database is accessible from your Dev Container environment. 
+
+![devcontainer.png](assets%2Fimg%2Fdevcontainer.png)
