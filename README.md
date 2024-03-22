@@ -155,7 +155,8 @@ Ubuntu Jammy container will be spawned with the following features pre-installed
 - It will deploy Neo4j as a standalone cluster (you can change that and get a HA cluster by increasing the value of `minimumClusterSize` in **.devcontainer/overrides.yaml**)
 
 Only thing left to you is to install in the Dev Container environment, as long as you are working with Visual Studio Code, 
-the Bridge to Kubernetes extensions and forward the 3 ports (`7473`, `7474` and `7687`) exposed from the 
-**n4j-cluster-lb-neo4j** Service, so your Neo4j database is accessible from your Dev Container environment. 
+the [Bridge to Kubernetes](https://learn.microsoft.com/en-us/visualstudio/bridge/overview-bridge-to-kubernetes) extension 
+and forward the 3 ports (`7473`, `7474` and `7687`) exposed from the **n4j-cluster-lb-neo4j** Service, so your Neo4j 
+database is accessible from your Dev Container environment. 
 
 ![devcontainer.png](assets%2Fimg%2Fdevcontainer.png)
