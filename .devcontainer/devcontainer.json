@@ -20,7 +20,8 @@
         "golang.go",
         "mutantdino.resourcemonitor",
         "ms-vscode.makefile-tools",
-        "ms-kubernetes-tools.vscode-kubernetes-tools"
+        "ms-kubernetes-tools.vscode-kubernetes-tools",
+        "mindaro.mindaro"
       ]
     }
   }
