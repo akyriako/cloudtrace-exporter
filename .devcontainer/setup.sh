@@ -10,8 +10,17 @@ else
     kind create cluster --name=neo4j --config .devcontainer/cluster.yaml
 fi
 
-# Provision a Neo4j cluster on Kubernetes
-helm repo add neo4j https://helm.neo4j.com/neo4j
-helm repo update
+mkdir ~/.kube && kind --name neo4j export kubeconfig >> ~/.kube/config
+chmod 400 ~/.kube/config
+kubectl config use-context kind-neo4j
 
-helm upgrade --install n4j-cluster neo4j/neo4j -f .devcontainer/overrides.yaml -n n4j --create-namespace
+# Provision a Neo4j cluster on Kubernetes
+if helm list -A | grep -q "n4j-cluster"; then
+    echo "A chart with the name 'n4j-cluster' already exists."
+else
+    helm repo add neo4j https://helm.neo4j.com/neo4j
+    helm repo update
+
+    helm upgrade --install n4j-cluster neo4j/neo4j -f .devcontainer/overrides.yaml -n n4j --create-namespace
+fi
+

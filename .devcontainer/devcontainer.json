@@ -21,7 +21,8 @@
         "mutantdino.resourcemonitor",
         "ms-vscode.makefile-tools",
         "ms-kubernetes-tools.vscode-kubernetes-tools",
-        "mindaro.mindaro"
+        "mindaro.mindaro",
+        "mhutchie.git-graph"
       ]
     }
   }
