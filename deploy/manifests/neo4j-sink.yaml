@@ -1,0 +1,10 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: neo4j-sink
+  namespace: default
+spec:
+  template:
+    spec:
+      containers:
+        - image: ko://github.com/akyriako/cloudtrace-exporter/cmd/neo4j_sink

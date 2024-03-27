@@ -11,7 +11,7 @@ spec:
     spec:
       containers:
         - name: cloudtrace-exporter
-          image: ko://github.com/akyriako/cloudtrace-exporter/cmd
+          image: ko://github.com/akyriako/cloudtrace-exporter/cmd/cts_exporter
           command:
             - "/layers/google.go.build/bin/main"
           env:

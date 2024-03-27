@@ -1,10 +1,14 @@
 #!/bin/bash
 
 # Install the required tools and dependencies
-sudo apt-get update
+# sudo apt-get update
 
 # Provision a KinD cluster
-kind create cluster --name neo4j --config .devcontainer/cluster.yaml
+if kind get clusters | grep -q "neo4j"; then
+    echo "A Kubernetes cluster with the name 'neo4j' already exists."
+else
+    kind create cluster --name=neo4j --config .devcontainer/cluster.yaml
+fi
 
 # Provision a Neo4j cluster on Kubernetes
 helm repo add neo4j https://helm.neo4j.com/neo4j
