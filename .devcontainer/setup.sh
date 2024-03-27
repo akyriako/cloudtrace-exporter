@@ -14,10 +14,12 @@ fi
 
 # 2. Create a KinD cluster
 if kind get clusters | grep -q "neo4j"; then
-    echo "A Kubernetes cluster with the name 'neo4j' already exists."
+echo "A Kubernetes cluster with the name 'neo4j' already exists."
+mkdir ~/.kube && kind --name neo4j export kubeconfig >> ~/.kube/config
+chmod 400 ~/.kube/config
+kubectl config use-context kind-neo4j
 else
-    kind create cluster --name=neo4j --config .devcontainer/cluster.yaml
-fi
+kind create cluster --name=neo4j --config .devcontainer/cluster.yaml
 
 # 3. Add the registry config to the nodes
 #
@@ -58,6 +60,8 @@ EOF
 mkdir ~/.kube && kind --name neo4j export kubeconfig >> ~/.kube/config
 chmod 400 ~/.kube/config
 kubectl config use-context kind-neo4j
+
+fi
 
 # 6. Provision a Neo4j cluster on Kubernetes
 if helm list -A | grep -q "n4j-cluster"; then
