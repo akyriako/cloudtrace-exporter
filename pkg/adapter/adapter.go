@@ -4,16 +4,17 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/akyriako/opentelekomcloud/auth"
-	cloudevents "github.com/cloudevents/sdk-go/v2"
-	"github.com/hashicorp/go-multierror"
-	"github.com/opentelekomcloud/gophertelekomcloud/openstack/cts/v2/traces"
-	duckv1 "knative.dev/pkg/apis/duck/v1"
 	"log/slog"
 	"net/url"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/akyriako/opentelekomcloud/auth"
+	cloudevents "github.com/cloudevents/sdk-go/v2"
+	"github.com/hashicorp/go-multierror"
+	"github.com/opentelekomcloud/gophertelekomcloud/openstack/cts/v2/traces"
+	duckv1 "knative.dev/pkg/apis/duck/v1"
 )
 
 // SinkBindingConfig The SinkBinding object supports decoupling event production from delivery addressing.
@@ -34,13 +35,14 @@ type Adapter struct {
 	ceClient    cloudevents.Client
 	sinkUrl     *url.URL
 	ceOverrides *duckv1.CloudEventOverrides
+	debug       bool
 }
 
 var (
 	delta time.Duration
 )
 
-func NewAdapter(c *auth.OpenTelekomCloudClient, cqc CtsQuerierConfig, sbc SinkBindingConfig) (*Adapter, error) {
+func NewAdapter(c *auth.OpenTelekomCloudClient, cqc CtsQuerierConfig, sbc SinkBindingConfig, debug bool) (*Adapter, error) {
 	qry, err := newCtsQuerier(cqc, c)
 	if err != nil {
 		return nil, err
@@ -71,7 +73,7 @@ func NewAdapter(c *auth.OpenTelekomCloudClient, cqc CtsQuerierConfig, sbc SinkBi
 		return nil, fmt.Errorf("failed to create http client: %w", err)
 	}
 
-	adapter := Adapter{*qry, ceClient, sinkUrl, ceOverrides}
+	adapter := Adapter{*qry, ceClient, sinkUrl, ceOverrides, debug}
 	return &adapter, nil
 }
 
@@ -118,7 +120,7 @@ func (a *Adapter) GetEvents() ([]cloudevents.Event, error) {
 		listTracesOpts.Next = ltr.MetaData.Marker
 	}
 
-	if len(events) > 0 {
+	if len(events) > 0 || a.debug {
 		slog.Info(fmt.Sprintf("collected %d events", len(events)),
 			"project", a.config.ProjectId, "tracker", a.config.TrackerName, "from", fromTime, "to", toTime)
 	}
@@ -190,7 +192,7 @@ func (a *Adapter) GetEventsStream(eventsStream chan<- cloudevents.Event, done ch
 		listTracesOpts.Next = ltr.MetaData.Marker
 	}
 
-	if collected > 0 {
+	if collected > 0 || a.debug {
 		slog.Info(fmt.Sprintf("collected %d events", collected),
 			"project", a.config.ProjectId, "tracker", a.config.TrackerName, "from", fromTime, "to", toTime)
 	}

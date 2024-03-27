@@ -4,16 +4,18 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"log/slog"
+	"os"
+	"path"
+	"strings"
+	"sync"
+	"time"
+
 	"github.com/akyriako/cloudtrace-exporter/pkg/adapter"
 	"github.com/akyriako/opentelekomcloud/auth"
 	"github.com/caarlos0/env/v10"
 	cloudevents "github.com/cloudevents/sdk-go/v2"
 	"github.com/hashicorp/go-multierror"
-	"log/slog"
-	"os"
-	"strings"
-	"sync"
-	"time"
 )
 
 type environment struct {
@@ -65,9 +67,20 @@ func init() {
 func main() {
 	flag.Parse()
 
+	confDir := ("/etc/openstack/")
+	filename := path.Join(confDir, "clouds.yaml")
+	if _, err := os.Stat(filename); errors.Is(err, os.ErrNotExist) {
+		slog.Error("loading clouds.yaml failed", "confDir", confDir)
+	} else {		
+		slog.Info("loaded clouds.yaml", "confDir", confDir)
+	}
+
 	client, err := auth.NewOpenTelekomCloudClient(config.Cloud)
 	if err != nil {
-		slog.Error(fmt.Sprintf("acquiring an opentelekomcloud client failed: %s", strings.ToLower(err.Error())))
+		slog.Error(fmt.Sprintf(
+			"acquiring an opentelekomcloud client failed: %s",
+			strings.ToLower(err.Error()),
+		), "confDir", confDir, "cloudProfile", config.Cloud)
 		os.Exit(exitCodeConfigurationError)
 	}
 
@@ -92,7 +105,7 @@ func main() {
 		CeOverrides: config.CeOverrides,
 	}
 
-	ctsAdapter, err = adapter.NewAdapter(client, cqc, sbc)
+	ctsAdapter, err = adapter.NewAdapter(client, cqc, sbc, config.Debug)
 	if err != nil {
 		slog.Error(fmt.Sprintf("creating a cloudtrace adapter failed: %s", err))
 		os.Exit(exitCodeOpenTelekomCloudClientError)

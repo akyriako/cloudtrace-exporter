@@ -72,19 +72,19 @@ ko: $(KO) ## Download ko.build locally if necessary.
 $(KO): $(LOCALBIN)
 	test -s $(LOCALBIN)/ko || GOBIN=$(LOCALBIN) go install github.com/google/ko@latest
 
+.PHONY: ko-build
 ko-build: ko ## Use ko build to build locally.
-	$(KO) build --local --bare github.com/akyriako/cloudtrace-exporter/cmd
+	$(KO) build github.com/akyriako/cloudtrace-exporter/cmd/cts_exporter
+	$(KO) build github.com/akyriako/cloudtrace-exporter/cmd/neo4j_sink
 
+.PHONY: ko-push
 ko-push: ko ## Use ko build to build and push to remote hub.
 	echo $(KO_DOCKER_REPO)
 
+.PHONY: ko-deploy
 ko-deploy: ko ## Build image locally and deploy Deployment to Kubernetes.
-	$(KO) apply --local --bare -f deploy/manifests/cloudtrace-exporter-deployment.yaml
-
-.PHONY: kind
-kind: $(KO) ## Download kind locally if necessary.
-$(KO): $(LOCALBIN)
-	test -s $(LOCALBIN)/ko || GOBIN=$(LOCALBIN) go install github.com/google/ko@latest
+	$(KO) apply -f deploy/manifests/cloudtrace-exporter-deployment.yaml
+# $(KO) apply --local --bare -f deploy/manifests/cloudtrace-exporter-neo4jsink.yaml
 
 ##@ Deployment
 
@@ -93,17 +93,16 @@ define encode_clouds
 	envsubst < deploy/manifests/cloudtrace-exporter-clouds-secret.yaml | kubectl apply -f -
 endef
 
-.PHONY: install
-secret: ## Build Secret from clouds.yaml and deploy to Kubernetes.
+install-secret: ## Build Secret from clouds.yaml and deploy to Kubernetes.
 	$(encode_clouds)
 
-event-display: ## Deploy event-display Sink to Kubernetes.
+install-event-display: ## Deploy event-display Sink to Kubernetes.
 	kubectl apply -f deploy/manifests/event-display-sink.yaml
 
-configuration: secret ## Deploy the configuration manifests to Kubernetes.
+install-configuration: install-secret ## Deploy the configuration manifests to Kubernetes.
 	kubectl apply -f deploy/manifests/cloudtrace-exporter-configmap.yaml
 
-install: event-display configuration ko-deploy ## Install using SinkBinding.
+install: install-event-display install-configuration ko-deploy ## Install using SinkBinding.
 	kubectl apply -f deploy/manifests/cloudtrace-exporter-sinkbinding.yaml
 
 .PHONY: uninstall

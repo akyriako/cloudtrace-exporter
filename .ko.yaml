@@ -3,5 +3,8 @@ defaultPlatforms:
   - linux/amd64
 builds:
   - id: cloudtrace-exporter
-    dir: ./cmd
+    dir: ./cmd/cts_exporter
+    main: .
+  - id: cloudtrace-exporter
+    dir: ./cmd/neo4j_sink
     main: .

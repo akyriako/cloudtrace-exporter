@@ -20,7 +20,7 @@ spec:
         - name: cloudtrace-exporter
           image: ko://github.com/akyriako/cloudtrace-exporter/cmd/cts_exporter
           command:
-            - "/layers/google.go.build/bin/main"
+            - "/ko-app/cts_exporter"
           env:
             - name: OS_CLOUD
               valueFrom:
@@ -42,10 +42,12 @@ spec:
                 configMapKeyRef:
                   name: cloudtrace-exporter-config
                   key: CTS_FROM
+            - name: K_SINK
+              value: "http://localhost:19081"
           imagePullPolicy: IfNotPresent
           volumeMounts:
             - name: clouds-secret-volume
-              mountPath: /workspace/clouds.yaml
+              mountPath: /etc/openstack/clouds.yaml
               subPath: clouds.yaml
       restartPolicy: Always
       volumes:
