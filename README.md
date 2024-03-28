@@ -178,7 +178,7 @@ or as a `SinkBinding`:
 make install-sinkbinding
 ```
 
-> [!IMPORANT]
+> [!IMPORTANT]
 > **neo4_sink** will be deployed as a `Knative Service`, and its endpoint will serve as the value of `K_SINK` environment
 > variable that **cts_explorer** will push the collected CloudEvents.
 
