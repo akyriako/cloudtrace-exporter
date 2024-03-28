@@ -196,9 +196,8 @@ make uninstall
 Provision infrastructure elements with Terraform 
 
 - [ ] VPC
-- [ ] RDS
-- [ ] Security Groups
 - [ ] CCE
+- [ ] Artifacts build and installation from SWR
 
 ## Development
 
