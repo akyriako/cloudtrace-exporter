@@ -191,17 +191,19 @@ supports Dev Containers, to set up an isolated containerized environment for you
 
 ### Local
 
-Working on your local machine, requires the following:
+Working on your plain local host machine (no remote containers), requires the following:
 
 - Assign values to the environment variables for both binaries, as mentioned earlier in this document
 - Provide a Neo4j database instance. You can choose among a simple container, a Kubernetes workload or even the new [Neo4j Desktop](https://neo4j.com/docs/desktop-manual/current/)
+- Have a Kubernetes cluster, already set up for Knative Serving & Eventing.
 
 ### Dev Container
 
-Dev Container will create a container with all the necessary prerequisites to get you started developing immediately. An
-Ubuntu Jammy container will be spawned with the following features pre-installed:
+A Dev Container will be created, with all the necessary prerequisites to get you started developing immediately. A
+container, based on `mcr.microsoft.com/devcontainers/base:jammy` will be spawned with the following features pre-installed:
 
-- Git
+- Resource Monitor
+- Git, Git Graph
 - Docker in Docker
 - Kubectl, Helm, Helmfile, K9s, KinD, Dive
 - [Bridge to Kubernetes](https://learn.microsoft.com/en-us/visualstudio/bridge/overview-bridge-to-kubernetes) Visual Studio Code Extension
