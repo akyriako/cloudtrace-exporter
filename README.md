@@ -180,7 +180,7 @@ make install-sinkbinding
 
 > [!IMPORTANT]
 > **neo4_sink** will be deployed as a `Knative Service`, and its endpoint will serve as the value of `K_SINK` environment
-> variable that **cts_explorer** will push the collected CloudEvents.
+> variable that **cts_explorer** will push the collected CloudEvents to.
 
 
 ### Uninstall
@@ -229,8 +229,8 @@ You can access Neo4j either internally within the cluster or externally from you
 
 ##### Internally
 
-If you want to access Neo4j internally from another pod of cluster, you just need to consume the Kubernetes `Service` endpoint
-which in our setup would be `neo4j://n4j-cluster.n4j-lb-neo4j.service.cluster.local`
+If you want to access Neo4j internally from another pod of the cluster, you just need to consume the Kubernetes `Service` 
+endpoint which in our setup would be `neo4j://n4j-cluster.n4j-lb-neo4j.service.cluster.local`
 
 ##### Externally
 
