@@ -111,6 +111,8 @@ For **neo4j_sink** you need to set the following environment variables:
 
 ## Deployment
 
+### Local
+
 The project is coming with a `Makefile` that takes care of everything for you, from building (using [ko](https://ko.build/);
 neither a `Dockerfile` is needed nor docker registries to push the generated container images) to deployment on a 
 Kubernetes cluster. Only thing you need, if you not working inside the provided Dev Container, is to have a Kubernetes 
@@ -179,7 +181,7 @@ make install-sinkbinding
 ```
 
 > [!IMPORTANT]
-> **neo4_sink** will be deployed as a `Knative Service`, and its endpoint will serve as the value of `K_SINK` environment
+> **neo4j_sink** will be deployed as a `Knative Service`, and its endpoint will serve as the value of `K_SINK` environment
 > variable that **cts_explorer** will push the collected CloudEvents to.
 
 
@@ -188,6 +190,8 @@ make install-sinkbinding
 ```shell
 make uninstall
 ```
+
+### Open Telekom Cloud
 
 ## Development
 
