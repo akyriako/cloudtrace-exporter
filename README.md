@@ -205,6 +205,8 @@ Working on your plain local host machine (no remote containers), requires the fo
 
 ### Dev Container
 
+#### Extensions & Features
+
 A Dev Container will be created, with all the necessary prerequisites to get you started developing immediately. A
 container, based on `mcr.microsoft.com/devcontainers/base:jammy` will be spawned with the following features pre-installed:
 
@@ -221,14 +223,16 @@ A `postCreateCommand` (**.devcontainer/setup.sh**) will provision:
 - A standalone **Neo4j cluster** (you can change that and get a HA cluster by increasing the value of `minimumClusterSize` in **.devcontainer/overrides.yaml**)
 - the necessary resources for the **Knative Serving & Eventing infrastructure**
 
+#### Ports & Services
+
 You can access Neo4j either internally within the cluster or externally from your container or from your local host.
 
-#### Internally
+##### Internally
 
 If you want to access Neo4j internally from another pod of cluster, you just need to consume the Kubernetes `Service` endpoint
 which in our setup would be `neo4j://n4j-cluster.n4j-lb-neo4j.service.cluster.local`
 
-#### Externally
+##### Externally
 
 You need, as long as you are working with Visual Studio Code,  
 to forward the 3 ports (`7473`, `7474` and `7687`) exposed from the **n4j-cluster-lb-neo4j** Service, so your Neo4j 
