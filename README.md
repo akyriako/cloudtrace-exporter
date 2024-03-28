@@ -92,8 +92,8 @@ Additionally, you need to set the following environment variables for **cts_expo
 > - `K_SINK` the URL of the resolved sink
 > - `K_CE_OVERRIDES` a JSON object that specifies overrides to the outbound event
 > 
-> If you choose to deploy **cts_exporter** as a plain Kubernetes `Deployment`, for test reasons,  
-> using `deploy/manifests/cloudtrace-exporter-deployment.yaml` you need to explicitly set the value of `K_SINK` yourself.
+> If you choose to deploy **cts_exporter** as a plain Kubernetes `Deployment`, for test reasons, using `deploy/manifests/cloudtrace-exporter-deployment.yaml` 
+> you need to explicitly set the value of `K_SINK` yourself.
 > This will not unfold the whole functionality, because the resource will be deployed outside of the realm of responsibility 
 > of Knative reconcilers. As mentioned again, this is **exclusively** for quick test purposes.
 > 
@@ -107,7 +107,7 @@ For **neo4j_sink** you need to set the following environment variables:
 - `NEO4J_PASSWORD` the password to use for authentication
 
 > [!NOTE]
-> At the moment, the client wrapper around Neo4j driver, built in `neo4j_sink`, is supporting only Basic Auth.
+> At the moment, the client wrapper around Neo4j driver, built in **neo4j_sink**, is supporting only Basic Auth.
 
 ## Deployment
 
