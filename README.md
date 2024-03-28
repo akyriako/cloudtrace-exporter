@@ -75,18 +75,30 @@ clouds:
 
 ```
 
-> **_WARNING:_**  **clouds.yaml** is already added to **.gitignore**, so there is no danger leaking its sensitive 
-> contents in public!
+> [!IMPORTANT]
+> **clouds.yaml** is already added to **.gitignore**, so there is no danger leaking its sensitive contents in public!
 
-Additionally you need to set the following environment variables for **cts_exporter**: 
+Additionally, you need to set the following environment variables for **cts_exporter**: 
 
 - `OS_CLOUD` the cloud profile you want to choose from your **cloud.yaml** file
 - `OS_DEBUG` whether you want to swap to debug mode, defaults to `false`
 - `CTS_TRACKER` the CTS tracker you want to hook on, default to `system`
 - `CTS_FROM` an integer value in minutes, that signifies how long in the past to look for traces and the interval between two consecutive queries, defaults to `5`
 - `CTS_X_PNP` whether you want to push the collected traces to a sink, defaults to `true` 
-- `K_SINK` the URL of the resolved sink
-- `K_CE_OVERRIDES` a JSON object that specifies overrides to the outbound event
+
+> [!IMPORTANT]
+> There are two additional environment variables, that need to be addressed separately, and those are: 
+>
+> - `K_SINK` the URL of the resolved sink
+> - `K_CE_OVERRIDES` a JSON object that specifies overrides to the outbound event
+> 
+> If you choose to deploy **cts_exporter** as a plain Kubernetes `Deployment`, for test reasons,  
+> using `deploy/manifests/cloudtrace-exporter-deployment.yaml` you need to explicitly set the value of `K_SINK` yourself.
+> This will not unfold the whole functionality, because the resource will be deployed outside of the realm of responsibility 
+> of Knative reconcilers. As mentioned again, this is **exclusively** for quick test purposes.
+> 
+> If you deploy **cts_exporter** as a `ContainerSource` or `SinkBinding`, Knative will take care of the rest and inject in 
+> your container an environment variable named `K_SINK` by itself.
 
 For **neo4j_sink** you need to set the following environment variables:
 
@@ -94,15 +106,17 @@ For **neo4j_sink** you need to set the following environment variables:
 - `NEO4J_USER` the username to use for authentication
 - `NEO4J_PASSWORD` the password to use for authentication
 
-> **_NOTE:_**  At the moment the client wrapper around Neo4j driver, built in `neo4j_sink`, is supporting only Basic Auth.
+> [!NOTE]
+> At the moment, the client wrapper around Neo4j driver, built in `neo4j_sink`, is supporting only Basic Auth.
 
 ## Deployment
 
 The project is coming with a `Makefile` that takes care of everything for you, from building (using [ko](https://ko.build/);
 neither a `Dockerfile` is needed nor docker registries to push the generated container images) to deployment on a 
-Kubernetes cluster. Only thing you need, is to have a Kubernetes cluster in place, already employed with **Knative Serving & Eventing** artifacts.
+Kubernetes cluster. Only thing you need, is to have a Kubernetes cluster in place, already employed with 
+**Knative Serving & Eventing** artifacts.
 
-Before installing you need to define the values of cts_exporter environment variables in `deploy/manifests/cloudtrace-exporter-configmap.yaml` e.g:
+Before installing you need to define the values of **cts_exporter** environment variables in `deploy/manifests/cloudtrace-exporter-configmap.yaml` e.g:
 
 ```yaml
 apiVersion: v1
@@ -119,8 +133,17 @@ data:
 
 ### Install
 
+As mentioned earlier, you are given two options as how to deploy **cts_exporter** as a Knative workload; either as a 
+`ContainerSource`:
+
 ```shell
-make install
+make install-containersource
+```
+
+or as a `SinkBinding`:
+
+```shell
+make install-sinkbinding
 ```
 
 ### Uninstall
@@ -132,8 +155,8 @@ make uninstall
 ## Development
 
 Development comes as well with "batteries included". You can either go ahead and start debugging straight on your local
-machine, or take advantage of the `.devcontainer` file that can be found in the repo, that sets up an isolated
-containerized environment for you with a Neo4j database included.
+machine, or take advantage of the `.devcontainer.json` file that can be found in the repo, that instructs any IDE that 
+supports Dev Containers, to set up an isolated containerized environment for you with a Neo4j database included.
 
 ### Local
 
@@ -149,14 +172,22 @@ Ubuntu Jammy container will be spawned with the following features pre-installed
 
 - Git
 - Docker in Docker
-- Kubectl, Helm, Helmfile, K9s, KinD
+- Kubectl, Helm, Helmfile, K9s, KinD, Dive
 - [Bridge to Kubernetes](https://learn.microsoft.com/en-us/visualstudio/bridge/overview-bridge-to-kubernetes) Visual Studio Code Extension
 - Latest version of Golang
-- It will deploy a containerized Kubernetes cluster with 1 control and 3 worker nodes, using KinD (cluster manifest is in **.devcontainer/cluster.yaml**) 
-- It will deploy Neo4j as a standalone cluster (you can change that and get a HA cluster by increasing the value of `minimumClusterSize` in **.devcontainer/overrides.yaml**)
+
+A `postCreateCommand` (**.devcontainer/setup.sh**) will provision:
+
+- A containerized **Kubernetes cluster** with 1 control and 3 worker nodes **and** a private registry, using KinD (cluster manifest is in **.devcontainer/cluster.yaml**) 
+- A standalone **Neo4j cluster** (you can change that and get a HA cluster by increasing the value of `minimumClusterSize` in **.devcontainer/overrides.yaml**)
+- the necessary resources for the **Knative Serving & Eventing infrastructure**
 
 Only thing left to you is, as long as you are working with Visual Studio Code,  
 to forward the 3 ports (`7473`, `7474` and `7687`) exposed from the **n4j-cluster-lb-neo4j** Service, so your Neo4j 
 database is accessible from your Dev Container environment. 
+
+> [!NOTE]
+> You can just port-forward the Kubernetes Service ports straight from K9s, in an integrated Visual Studio Code terminal,
+> and Visual Studio Code will pick up automatically those ports and forward them to your local machine.
 
 ![devcontainer.png](assets%2Fimg%2Fdevcontainer.png)
