@@ -75,7 +75,7 @@ clouds:
 
 ```
 
-> [!IMPORTANT]
+> [!CAUTION]
 > **clouds.yaml** is already added to **.gitignore**, so there is no danger leaking its sensitive contents in public!
 
 Additionally, you need to set the following environment variables for **cts_exporter**: 
@@ -219,7 +219,7 @@ Only thing left to you is, as long as you are working with Visual Studio Code,
 to forward the 3 ports (`7473`, `7474` and `7687`) exposed from the **n4j-cluster-lb-neo4j** Service, so your Neo4j 
 database is accessible from your Dev Container environment. 
 
-> [!NOTE]
+> [!TIP]
 > You can just port-forward the Kubernetes Service ports straight from K9s, in an integrated Visual Studio Code terminal,
 > and Visual Studio Code will pick up automatically those ports and forward them to your local machine.
 
