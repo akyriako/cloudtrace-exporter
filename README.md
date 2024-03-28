@@ -111,8 +111,6 @@ For **neo4j_sink** you need to set the following environment variables:
 
 ## Deployment
 
-### Local
-
 The project is coming with a `Makefile` that takes care of everything for you, from building (using [ko](https://ko.build/);
 neither a `Dockerfile` is needed nor docker registries to push the generated container images) to deployment on a 
 Kubernetes cluster. Only thing you need, if you not working inside the provided Dev Container, is to have a Kubernetes 
@@ -151,9 +149,11 @@ Before deploying anything, you need to define:
       CTS_FROM: "1"
     ```
 
-### Install
+### Local
 
-#### Configuration
+#### Install
+
+##### Configuration
 
 You can (re)deploy the configuration (`ConfigMaps` and `Secrets`) of all workloads using one target:
 
@@ -161,7 +161,7 @@ You can (re)deploy the configuration (`ConfigMaps` and `Secrets`) of all workloa
 make install-configuration
 ```
 
-#### Binaries
+##### Binaries
 
 > [!NOTE]
 > The targets below will rebuild all the container images from code, redeploy configuration and then deploy
@@ -185,7 +185,7 @@ make install-sinkbinding
 > variable that **cts_explorer** will push the collected CloudEvents to.
 
 
-### Uninstall
+#### Uninstall
 
 ```shell
 make uninstall
