@@ -193,6 +193,13 @@ make uninstall
 
 ### Open Telekom Cloud
 
+Provision infrastructure elements with Terraform 
+
+- [] VPC
+- [] RDS
+- [] Security Groups
+- [] CCE
+
 ## Development
 
 Development comes as well with "batteries included". You can either go ahead and start debugging straight on your local
