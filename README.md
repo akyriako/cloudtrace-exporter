@@ -161,6 +161,10 @@ make install-configuration
 
 #### Binaries
 
+> [!NOTE]
+> The targets below will rebuild all the container images from code, redeploy configuration and then deploy
+> our custom exporter and sink.
+
 As mentioned earlier, you are given two options as how to deploy **cts_exporter** as a Knative workload; either as a 
 `ContainerSource`:
 
@@ -173,9 +177,11 @@ or as a `SinkBinding`:
 ```shell
 make install-sinkbinding
 ```
-> [!NOTE]
-> The targets above will rebuild all the container images from code, redeploy configuration and then deploy 
-> our custom exporter and sink.
+
+> [!IMPORANT]
+> **neo4_sink** will be deployed as a `Knative Service`, and its endpoint will serve as the value of `K_SINK` environment
+> variable that **cts_explorer** will push the collected CloudEvents.
+
 
 ### Uninstall
 
@@ -215,7 +221,16 @@ A `postCreateCommand` (**.devcontainer/setup.sh**) will provision:
 - A standalone **Neo4j cluster** (you can change that and get a HA cluster by increasing the value of `minimumClusterSize` in **.devcontainer/overrides.yaml**)
 - the necessary resources for the **Knative Serving & Eventing infrastructure**
 
-Only thing left to you is, as long as you are working with Visual Studio Code,  
+You can access Neo4j either internally within the cluster or externally from your container or from your local host.
+
+#### Internally
+
+If you want to access Neo4j internally from another pod of cluster, you just need to consume the Kubernetes `Service` endpoint
+which in our setup would be `neo4j://n4j-cluster.n4j.service.cluster.local`
+
+#### Externally
+
+You need, as long as you are working with Visual Studio Code,  
 to forward the 3 ports (`7473`, `7474` and `7687`) exposed from the **n4j-cluster-lb-neo4j** Service, so your Neo4j 
 database is accessible from your Dev Container environment. 
 
