@@ -1,4 +1,4 @@
-p{
+{
   "name": "cloudtrace-exporter",
   "image": "mcr.microsoft.com/devcontainers/base:jammy",
   "features": {

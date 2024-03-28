@@ -38,7 +38,7 @@ spec:
           imagePullPolicy: IfNotPresent
           volumeMounts:
             - name: clouds-secret-volume
-              mountPath: /ko-app/clouds.yaml
+              mountPath: /etc/openstack/clouds.yaml
               subPath: clouds.yaml
       restartPolicy: Always
       volumes:

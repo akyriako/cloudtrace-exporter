@@ -67,11 +67,11 @@ func init() {
 func main() {
 	flag.Parse()
 
-	confDir := ("/etc/openstack/")
+	confDir := "/etc/openstack/"
 	filename := path.Join(confDir, "clouds.yaml")
 	if _, err := os.Stat(filename); errors.Is(err, os.ErrNotExist) {
 		slog.Error("loading clouds.yaml failed", "confDir", confDir)
-	} else {		
+	} else {
 		slog.Info("loaded clouds.yaml", "confDir", confDir)
 	}
 
