@@ -113,25 +113,53 @@ For **neo4j_sink** you need to set the following environment variables:
 
 The project is coming with a `Makefile` that takes care of everything for you, from building (using [ko](https://ko.build/);
 neither a `Dockerfile` is needed nor docker registries to push the generated container images) to deployment on a 
-Kubernetes cluster. Only thing you need, is to have a Kubernetes cluster in place, already employed with 
-**Knative Serving & Eventing** artifacts.
+Kubernetes cluster. Only thing you need, if you not working inside the provided Dev Container, is to have a Kubernetes 
+cluster in place, already employed with **Knative Serving & Eventing** artifacts and a Neo4j database instance, whose 
+endpoints are reachable from your Kubernetes pods.
 
-Before installing you need to define the values of **cts_exporter** environment variables in `deploy/manifests/cloudtrace-exporter-configmap.yaml` e.g:
+Before deploying anything, you need to define:
 
-```yaml
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: cloudtrace-exporter-config
-  namespace: default
-data:
-  OS_CLOUD: "otc"
-  OS_DEBUG: "false"
-  CTS_X_PNP: "true"
-  CTS_FROM: "1"
-```
+- the values of **cts_exporter** environment variables in `deploy/manifests/cloudtrace-exporter-configmap.yaml` e.g:
+
+    ```yaml
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: cloudtrace-exporter-config
+      namespace: default
+    data:
+      OS_CLOUD: "otc"
+      OS_DEBUG: "false"
+      CTS_X_PNP: "true"
+      CTS_FROM: "1"
+    ```
+
+- the values of **neo4j_sink** environment variables in `deploy/manifests/cloudtrace-neo4j-sink-secrets.yaml` e.g:
+
+    ```yaml
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: cloudtrace-exporter-config
+      namespace: default
+    data:
+      OS_CLOUD: "otc"
+      OS_DEBUG: "false"
+      CTS_X_PNP: "true"
+      CTS_FROM: "1"
+    ```
 
 ### Install
+
+#### Configuration
+
+You can (re)deploy the configuration (`ConfigMaps` and `Secrets`) of all workloads using one target:
+
+```shell
+make install-configuration
+```
+
+#### Binaries
 
 As mentioned earlier, you are given two options as how to deploy **cts_exporter** as a Knative workload; either as a 
 `ContainerSource`:
@@ -145,6 +173,9 @@ or as a `SinkBinding`:
 ```shell
 make install-sinkbinding
 ```
+> [!NOTE]
+> The targets above will rebuild all the container images from code, redeploy configuration and then deploy 
+> our custom exporter and sink.
 
 ### Uninstall
 
