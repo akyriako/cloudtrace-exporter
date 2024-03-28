@@ -226,7 +226,7 @@ You can access Neo4j either internally within the cluster or externally from you
 #### Internally
 
 If you want to access Neo4j internally from another pod of cluster, you just need to consume the Kubernetes `Service` endpoint
-which in our setup would be `neo4j://n4j-cluster.n4j.service.cluster.local`
+which in our setup would be `neo4j://n4j-cluster.n4j-lb-neo4j.service.cluster.local`
 
 #### Externally
 
