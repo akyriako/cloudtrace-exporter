@@ -70,9 +70,9 @@ func main() {
 	confDir := "/etc/openstack/"
 	filename := path.Join(confDir, "clouds.yaml")
 	if _, err := os.Stat(filename); errors.Is(err, os.ErrNotExist) {
-		slog.Error("loading clouds.yaml failed", "confDir", confDir)
+		slog.Error("clouds.yaml not found in default location, trying alternatives", "confDir", confDir)
 	} else {
-		slog.Info("loaded clouds.yaml", "confDir", confDir)
+		slog.Info("clouds.yaml not found in default location", "confDir", confDir)
 	}
 
 	client, err := auth.NewOpenTelekomCloudClient(config.Cloud)
