@@ -33,10 +33,11 @@ type SinkBindingConfig struct {
 
 type Adapter struct {
 	ctsQuerier
-	ceClient    cloudevents.Client
+	ceClient cloudevents.Client
+	debug    bool
+
 	sinkUrl     *url.URL
 	ceOverrides *duckv1.CloudEventOverrides
-	debug       bool
 
 	deltaLock sync.RWMutex
 	delta     time.Duration
