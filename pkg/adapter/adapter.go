@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/akyriako/opentelekomcloud/auth"
@@ -36,11 +37,10 @@ type Adapter struct {
 	sinkUrl     *url.URL
 	ceOverrides *duckv1.CloudEventOverrides
 	debug       bool
-}
 
-var (
-	delta time.Duration
-)
+	deltaLock sync.RWMutex
+	delta     time.Duration
+}
 
 func NewAdapter(c *auth.OpenTelekomCloudClient, cqc CtsQuerierConfig, sbc SinkBindingConfig, debug bool) (*Adapter, error) {
 	qry, err := newCtsQuerier(cqc, c)
@@ -73,15 +73,23 @@ func NewAdapter(c *auth.OpenTelekomCloudClient, cqc CtsQuerierConfig, sbc SinkBi
 		return nil, fmt.Errorf("failed to create http client: %w", err)
 	}
 
-	adapter := Adapter{*qry, ceClient, sinkUrl, ceOverrides, debug}
+	adapter := Adapter{
+		ctsQuerier:  *qry,
+		ceClient:    ceClient,
+		sinkUrl:     sinkUrl,
+		ceOverrides: ceOverrides,
+		debug:       debug,
+		delta:       0,
+	}
+
 	return &adapter, nil
 }
 
 func (a *Adapter) GetEvents() ([]cloudevents.Event, error) {
 	now := time.Now()
-	defer trackDelta(now)
+	defer a.trackDelta(now)
 
-	fromTime := now.Add(time.Duration(-a.ctsQuerier.config.From) * time.Minute).Add(-delta).UTC()
+	fromTime := now.Add(time.Duration(-a.ctsQuerier.config.From) * time.Minute).Add(-a.delta).UTC()
 	toTime := now.UTC()
 	fromInMilliSeconds := fromTime.UnixNano() / 1e6
 	toInMilliSeconds := toTime.UnixNano() / 1e6
@@ -148,9 +156,9 @@ func (a *Adapter) SendEvents(events []cloudevents.Event) (int, error) {
 
 func (a *Adapter) GetEventsStream(eventsStream chan<- cloudevents.Event, done chan<- interface{}) {
 	now := time.Now()
-	defer trackDelta(now)
+	defer a.trackDelta(now)
 
-	fromTime := now.Add(time.Duration(-a.ctsQuerier.config.From) * time.Minute).Add(-delta).UTC()
+	fromTime := now.Add(time.Duration(-a.ctsQuerier.config.From) * time.Minute).Add(-a.delta).UTC()
 	toTime := now.UTC()
 	fromInMilliSeconds := fromTime.UnixNano() / 1e6
 	toInMilliSeconds := toTime.UnixNano() / 1e6
@@ -254,6 +262,9 @@ func (a *Adapter) TraceToCloudEvent(trace traces.Traces) (*cloudevents.Event, er
 	return &event, nil
 }
 
-func trackDelta(start time.Time) {
-	delta = time.Since(start)
+func (a *Adapter) trackDelta(start time.Time) {
+	defer a.deltaLock.Unlock()
+
+	a.deltaLock.Lock()
+	a.delta = time.Since(start)
 }
