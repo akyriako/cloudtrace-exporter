@@ -191,14 +191,6 @@ make install-sinkbinding
 make uninstall
 ```
 
-### Open Telekom Cloud
-
-Provision infrastructure elements with Terraform 
-
-- [ ] VPC
-- [ ] CCE
-- [ ] Artifacts build and installation from SWR
-
 ## Development
 
 Development comes as well with "batteries included". You can either go ahead and start debugging straight on your local
